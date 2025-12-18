@@ -10,7 +10,6 @@ import Inventory from './pages/Inventory';
 import Clients from './pages/Clients';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-// Componente para gestión de usuarios (CRUD)
 const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDelete: (id: string) => void }> = ({ users, onSave, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -256,7 +255,6 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
   );
 };
 
-// Componente para gestión de proveedores (CRUD)
 const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider) => void, onDelete: (id: string) => void, isAdmin: boolean }> = ({ providers, onSave, onDelete, isAdmin }) => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Provider | null>(null);
@@ -341,7 +339,7 @@ const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-md p-6 shadow-2xl animate-in zoom-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in duration-200">
             <h3 className="text-xl font-bold mb-6 text-slate-900">{editing ? 'Actualizar' : 'Registrar'} Proveedor</h3>
             <form onSubmit={submit} className="space-y-4">
               <div className="flex flex-col items-center mb-4">
@@ -393,7 +391,6 @@ const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider
   );
 };
 
-// Componente App Principal
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>('DASHBOARD');
@@ -466,6 +463,7 @@ const App: React.FC = () => {
 
   const handleSaveUser = (u: User) => {
     dataService.saveUser(u);
+    // Sincronizar usuario actual si se editó a sí mismo
     if (user && u.id === user.id) {
       const updatedUser = { ...u };
       delete updatedUser.password;
@@ -519,27 +517,24 @@ const App: React.FC = () => {
           <title>Reporte de Ventas - Nexus ERP</title>
           <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.5; }
+            body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
             .header { border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
-            .header h1 { margin: 0; color: #1e293b; }
-            .chart-container { margin: 30px 0; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+            .total-box { padding: 20px; background: #1e293b; color: white; border-radius: 12px; text-align: right; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #f1f5f9; padding: 12px; text-align: left; border: 1px solid #e2e8f0; }
-            td { padding: 12px; border: 1px solid #e2e8f0; }
-            .total-box { padding: 20px 40px; background: #1e293b; color: white; border-radius: 12px; text-align: right; }
+            th, td { padding: 10px; border: 1px solid #e2e8f0; text-align: left; }
             @media print { .no-print { display: none; } }
           </style>
         </head>
         <body>
           <div class="header">
             <div><h1>Reporte de Ventas</h1><p>Rango: ${reportStartDate} al ${reportEndDate}</p></div>
-            <div style="text-align: right;"><strong>NEXUS ERP SYSTEM</strong><br>${new Date().toLocaleString()}</div>
+            <div><strong>NEXUS ERP</strong><br>${new Date().toLocaleString()}</div>
           </div>
-          <div class="chart-container"><canvas id="salesReportChart" height="100"></canvas></div>
+          <div style="margin-bottom:30px;"><canvas id="salesReportChart" height="100"></canvas></div>
           <table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Monto</th></tr></thead>
             <tbody>${filteredSalesForReport.map(s => `<tr><td>${s.id}</td><td>${new Date(s.date).toLocaleDateString()}</td><td>${s.clientName}</td><td>$${s.total.toFixed(2)}</td></tr>`).join('')}</tbody>
           </table>
-          <div style="display:flex; justify-content:flex-end; margin-top:30px;"><div class="total-box"><h2>$${total.toFixed(2)}</h2></div></div>
+          <div style="display:flex; justify-content:flex-end; margin-top:30px;"><div class="total-box"><h2>Total: $${total.toFixed(2)}</h2></div></div>
           <button onclick="window.print()" class="no-print" style="margin-top:20px; padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; cursor:pointer;">Imprimir</button>
           <script>
             new Chart(document.getElementById('salesReportChart'), {
@@ -549,20 +544,6 @@ const App: React.FC = () => {
           </script>
         </body>
       </html>
-    `;
-    win.document.write(html);
-    win.document.close();
-  };
-
-  const handleGenerateInventoryStatus = () => {
-    const win = window.open('', '_blank');
-    if (!win) return;
-    const criticos = products.filter(p => p.stock <= p.minStock);
-    const html = `
-      <html><head><title>Estado de Inventario</title><style>body{font-family:sans-serif;padding:40px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f4f4f4}</style></head>
-      <body><h1>Inventario Actual</h1><table><thead><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Estado</th></tr></thead>
-      <tbody>${products.map(p => `<tr><td>${p.code}</td><td>${p.name}</td><td>${p.stock}</td><td>${p.stock <= p.minStock ? 'BAJO' : 'OK'}</td></tr>`).join('')}</tbody>
-      </table><script>window.print()</script></body></html>
     `;
     win.document.write(html);
     win.document.close();
@@ -579,10 +560,15 @@ const App: React.FC = () => {
       case 'PRODUCTS': return <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={handleDeleteProduct} />;
       case 'CLIENTS': return <Clients clients={clients} onSaveClient={handleSaveClient} onDeleteClient={handleDeleteClient} />;
       case 'SALES_HISTORY': return (
-        <div className="bg-white rounded-xl border p-6 shadow-sm"><h2 className="text-xl font-bold mb-4">Historial de Ventas</h2><div className="overflow-x-auto">
-          <table className="w-full text-sm text-left"><thead className="bg-slate-50 uppercase text-slate-500 font-bold"><tr className="border-b"><th className="px-4 py-3">ID</th><th className="px-4 py-3">Fecha</th><th className="px-4 py-3">Cliente</th><th className="px-4 py-3">Total</th></tr></thead>
-          <tbody className="divide-y">{sales.map(s => (<tr key={s.id} className="hover:bg-slate-50"><td className="px-4 py-3 font-mono">{s.id}</td><td className="px-4 py-3">{new Date(s.date).toLocaleDateString()}</td><td className="px-4 py-3">{s.clientName}</td><td className="px-4 py-3 font-bold text-emerald-600">${s.total.toFixed(2)}</td></tr>))}</tbody></table>
-        </div></div>
+        <div className="bg-white rounded-xl border p-6 shadow-sm">
+          <h2 className="text-xl font-bold mb-4 text-slate-800">Historial de Ventas</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 uppercase text-slate-500 font-bold"><tr className="border-b"><th className="px-4 py-3">ID</th><th className="px-4 py-3">Fecha</th><th className="px-4 py-3">Cliente</th><th className="px-4 py-3">Total</th></tr></thead>
+              <tbody className="divide-y">{sales.map(s => (<tr key={s.id} className="hover:bg-slate-50"><td className="px-4 py-3 font-mono">{s.id}</td><td className="px-4 py-3">{new Date(s.date).toLocaleDateString()}</td><td className="px-4 py-3">{s.clientName}</td><td className="px-4 py-3 font-bold text-emerald-600">${s.total.toFixed(2)}</td></tr>))}</tbody>
+            </table>
+          </div>
+        </div>
       );
       case 'USERS': return user.role === Role.ADMIN ? <UserManagement users={users} onSave={handleSaveUser} onDelete={handleDeleteUser} /> : <div className="p-12 text-center bg-white rounded-xl border">No tiene permisos de administrador.</div>;
       case 'PROVIDERS': return <ProviderManagement providers={providers} onSave={handleSaveProvider} onDelete={handleDeleteProvider} isAdmin={user.role === Role.ADMIN} />;
@@ -591,37 +577,39 @@ const App: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-xl border p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-6">Reportes</h2>
+              <h2 className="text-xl font-bold mb-6 text-slate-800">Generador de Reportes</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div className="p-6 border rounded-xl bg-slate-50">
-                  <h4 className="font-bold mb-4">Reporte de Ventas</h4>
+                  <h4 className="font-bold mb-4">Reporte de Ventas por Período</h4>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="relative h-[44px] bg-white border rounded-lg flex items-center px-3 cursor-pointer overflow-hidden hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500">
+                    <div className="relative h-[44px] bg-white border rounded-lg flex items-center px-3 cursor-pointer overflow-hidden group">
                       <input type="date" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
-                      <span className="flex-1 text-slate-900 pointer-events-none text-sm">{reportStartDate ? new Date(reportStartDate+'T00:00:00').toLocaleDateString() : 'Inicio'}</span>
-                      <svg className="w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                      <span className="flex-1 text-slate-900 text-sm">{reportStartDate ? new Date(reportStartDate+'T00:00:00').toLocaleDateString() : 'Inicio'}</span>
+                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-                    <div className="relative h-[44px] bg-white border rounded-lg flex items-center px-3 cursor-pointer overflow-hidden hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500">
+                    <div className="relative h-[44px] bg-white border rounded-lg flex items-center px-3 cursor-pointer overflow-hidden group">
                       <input type="date" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
-                      <span className="flex-1 text-slate-900 pointer-events-none text-sm">{reportEndDate ? new Date(reportEndDate+'T00:00:00').toLocaleDateString() : 'Fin'}</span>
-                      <svg className="w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                      <span className="flex-1 text-slate-900 text-sm">{reportEndDate ? new Date(reportEndDate+'T00:00:00').toLocaleDateString() : 'Fin'}</span>
+                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                   </div>
-                  <button onClick={handleExportSalesPDF} className="mt-4 w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition-all">Exportar PDF</button>
+                  <button onClick={handleExportSalesPDF} className="mt-4 w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">Exportar Reporte PDF</button>
                 </div>
                 <div className="p-6 border rounded-xl bg-slate-50 flex flex-col justify-between">
-                  <h4 className="font-bold mb-2">Inventario</h4>
-                  <p className="text-xs text-slate-500 mb-4">Reporte completo de existencias.</p>
-                  <button onClick={handleGenerateInventoryStatus} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-all">Ver Inventario</button>
+                  <div>
+                    <h4 className="font-bold mb-2">Estado de Almacén</h4>
+                    <p className="text-xs text-slate-500 mb-4">Listado de existencias con alertas de stock crítico.</p>
+                  </div>
+                  <button onClick={() => window.alert('Función de PDF de Inventario')} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-all">Ver PDF de Inventario</button>
                 </div>
               </div>
               <div className="h-[300px] w-full bg-white border rounded-xl p-4">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={reportChartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{fill: '#f1f5f9'}} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#94a3b8'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#94a3b8'}} />
+                    <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
                     <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -634,12 +622,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
       <Sidebar currentView={currentView} setView={setCurrentView} user={user} onLogout={handleLogout} />
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 ml-64 p-8 overflow-y-auto">
         <header className="mb-8 flex items-center justify-between">
-          <h1 className="text-sm font-bold uppercase tracking-widest text-slate-400">{currentView.replace('_', ' ')}</h1>
-          <div className="text-xs text-slate-500 bg-white px-4 py-2 rounded-full border shadow-sm">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-bold uppercase tracking-widest text-slate-400">{currentView.replace('_', ' ')}</span>
+          </div>
+          <div className="text-xs font-medium text-slate-500 bg-white px-4 py-2 rounded-full border shadow-sm">
             {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </header>

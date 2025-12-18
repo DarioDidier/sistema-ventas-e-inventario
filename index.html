@@ -8,8 +8,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        body, html, #root { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0;
+            background-color: #f8fafc;
+        }
         body { font-family: 'Inter', sans-serif; }
-        /* Mejora para que el calendario se active en todo el campo */
+        
+        /* Estilo para que el calendario se active en todo el campo de fecha */
+        .date-input-wrapper {
+            position: relative;
+        }
         input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent;
             bottom: 0;
@@ -29,16 +39,15 @@
     "react": "https://esm.sh/react@19.0.0",
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "recharts": "https://esm.sh/recharts@2.15.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
   }
 }
 </script>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
-    <!-- Punto de entrada explícito para evitar pantalla en blanco -->
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>
