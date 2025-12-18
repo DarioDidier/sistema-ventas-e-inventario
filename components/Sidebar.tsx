@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { ICONS } from '../constants';
-import { Role, ViewType, User } from '../types';
+import { ICONS } from '../constants.tsx';
+import { Role, ViewType, User } from '../types.ts';
 
 interface SidebarProps {
   currentView: ViewType;

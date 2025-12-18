@@ -1,5 +1,5 @@
 
-import { User, Role, Client, Provider, Product, Sale, Purchase } from '../types';
+import { User, Role, Client, Provider, Product, Sale, Purchase } from '../types.ts';
 
 const INITIAL_USERS: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@nexus.com', username: 'admin', password: 'password', role: Role.ADMIN, isActive: true },
@@ -51,8 +51,12 @@ class DataService {
 
   // Auth
   getCurrentUser(): User | null {
-    const user = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+      return user ? JSON.parse(user) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   login(username: string, password?: string): User | null {
@@ -147,7 +151,6 @@ class DataService {
       const prod = products.find(p => p.id === item.productId);
       if (prod) {
         prod.stock += item.quantity;
-        // Opcional: Actualizar el costo del producto con el costo de la última compra
         prod.cost = item.costPrice;
       }
     });

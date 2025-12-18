@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Product, Sale } from '../types';
+import { Product, Sale } from '../types.ts';
 
 interface DashboardProps {
   sales: Sale[];
@@ -13,7 +13,6 @@ const Dashboard: React.FC<DashboardProps> = ({ sales, products }) => {
   const lowStockCount = products.filter(p => p.stock <= p.minStock).length;
   const totalProducts = products.length;
   
-  // Chart data simulation (last 7 days)
   const chartData = [
     { name: 'Lun', sales: 400 },
     { name: 'Mar', sales: 300 },
@@ -61,7 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ sales, products }) => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h4 className="text-lg font-semibold mb-6">Tendencia de Ventas (Semanal)</h4>
           <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
