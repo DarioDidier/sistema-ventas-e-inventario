@@ -1,21 +1,22 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { User, Role, ViewType, Product, Client, Sale, Provider, Purchase } from './types';
-import { dataService } from './services/dataService';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/Login';
-import NewSale from './pages/NewSale';
-import Inventory from './pages/Inventory';
-import Clients from './pages/Clients';
-import Purchases from './pages/Purchases';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { User, Role, ViewType, Product, Client, Sale, Provider, Purchase } from './types.ts';
+import { dataService } from './services/dataService.ts';
+import Sidebar from './components/Sidebar.tsx';
+import Dashboard from './pages/Dashboard.tsx';
+import Login from './pages/Login.tsx';
+import NewSale from './pages/NewSale.tsx';
+import Inventory from './pages/Inventory.tsx';
+import Clients from './pages/Clients.tsx';
+import Purchases from './pages/Purchases.tsx';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+/**
+ * UserManagement sub-component to handle user CRUD operations
+ */
 const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDelete: (id: string) => void }> = ({ users, onSave, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<Partial<User>>({ 
     name: '', 
     email: '', 
@@ -26,12 +27,6 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
     imageUrl: '' 
   });
 
-  const roleLabels: Record<Role, string> = {
-    [Role.ADMIN]: 'Administrador',
-    [Role.SELLER]: 'Vendedor',
-    [Role.WAREHOUSE]: 'Almacén / Depósito'
-  };
-
   const openModal = (u?: User) => {
     if (u) {
       setEditingUser(u);
@@ -40,24 +35,13 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
       setEditingUser(null);
       setForm({ name: '', email: '', username: '', password: '', role: Role.SELLER, isActive: true, imageUrl: '' });
     }
-    setShowPassword(false);
     setShowModal(true);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setForm({ ...form, imageUrl: reader.result as string });
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleConfirmSave = () => {
-    const isEditing = !!editingUser;
-    const userData: User = { ...form as User, id: isEditing ? editingUser!.id : `u-${Date.now()}` };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const userData: User = { ...form as User, id: editingUser ? editingUser.id : `u-${Date.now()}` };
     onSave(userData);
-    setShowConfirm(false);
     setShowModal(false);
   };
 
@@ -94,109 +78,18 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
                 <td className="px-4 py-3 font-semibold text-slate-900">{u.name}</td>
                 <td className="px-4 py-3 font-mono text-xs text-slate-500">{u.username}</td>
                 <td className="px-4 py-3">
-                   <span className="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200">{roleLabels[u.role]}</span>
+                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${u.role === Role.ADMIN ? 'bg-purple-100 text-purple-700' : u.role === Role.SELLER ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                     {u.role}
+                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`flex items-center font-bold text-[11px] ${u.isActive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${u.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`}></div> {u.isActive ? 'ACTIVO' : 'INACTIVO'}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full inline-block mr-2 ${u.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                  {u.isActive ? 'Activo' : 'Inactivo'}
                 </td>
-                <td className="px-4 py-3 text-right space-x-3">
-                  <button onClick={() => openModal(u)} className="text-blue-600 hover:text-blue-800 font-bold">Editar</button>
-                  <button onClick={() => { if(confirm(`¿Eliminar a ${u.name}?`)) onDelete(u.id) }} className="text-rose-500 hover:text-rose-700 font-bold">Borrar</button>
+                <td className="px-4 py-3 text-right">
+                  <button onClick={() => openModal(u)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">Editar</button>
+                  <button onClick={() => { if(confirm('¿Eliminar usuario?')) onDelete(u.id) }} className="text-rose-600 hover:text-rose-800 font-medium">Borrar</button>
                 </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in duration-200">
-            <h3 className="text-xl font-bold mb-6 text-slate-900">{editingUser ? 'Editar' : 'Registrar'} Usuario</h3>
-            <form onSubmit={(e) => { e.preventDefault(); handleConfirmSave(); }} className="space-y-4">
-              <div className="flex flex-col items-center mb-6">
-                <div className="w-24 h-24 rounded-full bg-slate-50 border-2 border-dashed border-slate-300 overflow-hidden relative">
-                  {form.imageUrl ? <img src={form.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400">👤</div>}
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                </div>
-              </div>
-              <input required placeholder="Nombre" className="w-full p-2.5 border rounded-xl" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-              <input required placeholder="Usuario" className="w-full p-2.5 border rounded-xl" value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
-              <input required type="password" placeholder="Contraseña" className="w-full p-2.5 border rounded-xl" value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
-              <select className="w-full p-2.5 border rounded-xl" value={form.role} onChange={e => setForm({...form, role: e.target.value as Role})}>
-                <option value={Role.ADMIN}>Administrador</option>
-                <option value={Role.SELLER}>Vendedor</option>
-                <option value={Role.WAREHOUSE}>Almacén</option>
-              </select>
-              <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-slate-600 font-bold">Cancelar</button>
-                <button type="submit" className="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-xl">Guardar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider) => void, onDelete: (id: string) => void, isAdmin: boolean }> = ({ providers, onSave, onDelete, isAdmin }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
-  const [form, setForm] = useState<Partial<Provider>>({ name: '', contactName: '', email: '', phone: '', category: '', imageUrl: '' });
-
-  const openModal = (p?: Provider) => {
-    if (p) { setEditingProvider(p); setForm(p); } 
-    else { setEditingProvider(null); setForm({ name: '', contactName: '', email: '', phone: '', category: '', imageUrl: '' }); }
-    setShowModal(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({ ...form as Provider, id: editingProvider ? editingProvider.id : `pr-${Date.now()}` });
-    setShowModal(false);
-  };
-
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <div className="p-6 border-b flex justify-between items-center">
-        <h2 className="text-xl font-bold">Gestión de Proveedores</h2>
-        {isAdmin && <button onClick={() => openModal()} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Nuevo Proveedor</button>}
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold">
-            <tr>
-              <th className="px-6 py-4">Logo</th>
-              <th className="px-6 py-4">Empresa</th>
-              <th className="px-6 py-4">Contacto</th>
-              <th className="px-6 py-4">Categoría</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Teléfono</th>
-              {isAdmin && <th className="px-6 py-4 text-right">Acciones</th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {providers.map(p => (
-              <tr key={p.id} className="hover:bg-slate-50">
-                <td className="px-6 py-4">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
-                    {p.imageUrl ? <img src={p.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">🏢</div>}
-                  </div>
-                </td>
-                <td className="px-6 py-4 font-bold">{p.name}</td>
-                <td className="px-6 py-4">{p.contactName}</td>
-                <td className="px-6 py-4 text-xs font-bold text-slate-500">{p.category}</td>
-                <td className="px-6 py-4 text-slate-500">{p.email}</td>
-                <td className="px-6 py-4 text-slate-500">{p.phone}</td>
-                {isAdmin && (
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={() => openModal(p)} className="text-blue-600 font-bold mr-3">Editar</button>
-                    <button onClick={() => { if(confirm('¿Eliminar proveedor?')) onDelete(p.id) }} className="text-rose-600 font-bold">Borrar</button>
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
@@ -205,17 +98,38 @@ const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg p-6 shadow-2xl overflow-hidden animate-in zoom-in duration-200">
-            <h3 className="text-lg font-bold mb-4">{editingProvider ? 'Editar' : 'Nuevo'} Proveedor</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input required placeholder="Nombre de Empresa" className="w-full p-2.5 border rounded-lg" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-              <input required placeholder="Contacto" className="w-full p-2.5 border rounded-lg" value={form.contactName} onChange={e => setForm({...form, contactName: e.target.value})} />
-              <input required placeholder="Categoría" className="w-full p-2.5 border rounded-lg" value={form.category} onChange={e => setForm({...form, category: e.target.value})} />
-              <div className="grid grid-cols-2 gap-4">
-                <input required placeholder="Email" className="w-full p-2.5 border rounded-lg" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-                <input required placeholder="Teléfono" className="w-full p-2.5 border rounded-lg" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 border-b bg-slate-50">
+              <h3 className="text-lg font-bold">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
+                <input required className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
               </div>
-              <div className="flex justify-end gap-3 pt-6 border-t">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                <input type="email" required className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Username</label>
+                  <input required className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900" value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                  <input type="password" required={!editingUser} className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900" value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Rol</label>
+                <select className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900" value={form.role} onChange={e => setForm({...form, role: e.target.value as Role})}>
+                  <option value={Role.ADMIN}>Administrador</option>
+                  <option value={Role.SELLER}>Vendedor</option>
+                  <option value={Role.WAREHOUSE}>Almacén</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3 pt-4 border-t">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600">Cancelar</button>
                 <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-lg">Guardar</button>
               </div>
@@ -227,163 +141,215 @@ const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider
   );
 };
 
+/**
+ * Main App Component
+ */
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<ViewType>('DASHBOARD');
+  const [user, setUser] = useState<User | null>(dataService.getCurrentUser());
+  const [view, setView] = useState<ViewType>('DASHBOARD');
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
 
-  const [reportStartDate, setReportStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
-  const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
-
   useEffect(() => {
-    const activeUser = dataService.getCurrentUser();
-    if (activeUser) { setUser(activeUser); loadSystemData(); }
-  }, []);
-
-  const loadSystemData = () => {
-    setProducts(dataService.getProducts());
-    setClients(dataService.getClients());
-    setSales(dataService.getSales());
-    setProviders(dataService.getProviders());
-    setUsers(dataService.getUsers());
-    setPurchases(dataService.getPurchases());
-  };
+    if (user) {
+      setProducts(dataService.getProducts());
+      setClients(dataService.getClients());
+      setUsers(dataService.getUsers());
+      setSales(dataService.getSales());
+      setProviders(dataService.getProviders());
+      setPurchases(dataService.getPurchases());
+    }
+  }, [user]);
 
   const handleLogin = (username: string, password?: string) => {
-    const loggedInUser = dataService.login(username, password);
-    if (loggedInUser) { setUser(loggedInUser); loadSystemData(); }
-    else alert('Credenciales inválidas');
-  };
-
-  const handleLogout = () => { dataService.logout(); setUser(null); setCurrentView('DASHBOARD'); };
-
-  const onCompleteSale = (sale: Sale) => {
-    dataService.completeSale(sale);
-    loadSystemData();
-    setCurrentView('SALES_HISTORY');
-  };
-
-  const onCompletePurchase = (purchase: Purchase) => {
-    dataService.completePurchase(purchase);
-    loadSystemData();
-    setCurrentView('PRODUCTS');
-    alert('Compra registrada: Stock actualizado correctamente');
-  };
-
-  const handleSaveProduct = (p: Product) => { dataService.saveProduct(p); loadSystemData(); };
-  const handleDeleteProduct = (id: string) => { dataService.deleteProduct(id); loadSystemData(); };
-  const handleSaveClient = (c: Client) => { dataService.saveClient(c); loadSystemData(); };
-  const handleDeleteClient = (id: string) => { dataService.deleteClient(id); loadSystemData(); };
-  const handleSaveUser = (u: User) => { dataService.saveUser(u); loadSystemData(); };
-  const handleDeleteUser = (id: string) => { dataService.deleteUser(id); loadSystemData(); };
-  const handleSaveProvider = (p: Provider) => { dataService.saveProvider(p); loadSystemData(); };
-  const handleDeleteProvider = (id: string) => { dataService.deleteProvider(id); loadSystemData(); };
-
-  const filteredSalesForReport = useMemo(() => {
-    return sales.filter(s => {
-      const saleDate = s.date.split('T')[0];
-      return saleDate >= reportStartDate && saleDate <= reportEndDate;
-    });
-  }, [sales, reportStartDate, reportEndDate]);
-
-  const handleExportSalesPDF = () => {
-    const win = window.open('', '_blank');
-    if (!win) return;
-    const total = filteredSalesForReport.reduce((acc, s) => acc + s.total, 0);
-    const html = `<html><head><title>Nexus ERP - Reporte</title><style>body{font-family:sans-serif;padding:40px}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #ddd;text-align:left}</style></head><body><h1>Reporte de Ventas</h1><p>Período: ${reportStartDate} - ${reportEndDate}</p><table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Monto</th></tr></thead><tbody>${filteredSalesForReport.map(s => `<tr><td>${s.id}</td><td>${new Date(s.date).toLocaleDateString()}</td><td>${s.clientName}</td><td>$${s.total.toFixed(2)}</td></tr>`).join('')}</tbody></table><h3>TOTAL: $${total.toFixed(2)}</h3><button onclick="window.print()">Imprimir</button></body></html>`;
-    win.document.write(html); win.document.close();
-  };
-
-  const handleExportInventoryPDF = () => {
-    const win = window.open('', '_blank');
-    if (!win) return;
-    const totalValue = products.reduce((acc, p) => acc + (p.stock * p.cost), 0);
-    const html = `<html><head><title>Inventario - Nexus ERP</title><style>body{font-family:sans-serif;padding:40px}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #ddd;text-align:left}.warning{color:red;font-weight:bold}</style></head><body><h1>Inventario Actual</h1><p>Fecha: ${new Date().toLocaleString()}</p><table><thead><tr><th>Código</th><th>Nombre</th><th>Stock</th><th>Costo</th><th>V. Inventario</th></tr></thead><tbody>${products.map(p => `<tr><td>${p.code}</td><td>${p.name}</td><td class="${p.stock <= p.minStock ? 'warning' : ''}">${p.stock}</td><td>$${p.cost.toFixed(2)}</td><td>$${(p.stock*p.cost).toFixed(2)}</td></tr>`).join('')}</tbody></table><h3>Valorización Total: $${totalValue.toFixed(2)}</h3><button onclick="window.print()">Imprimir</button></body></html>`;
-    win.document.write(html); win.document.close();
-  };
-
-  if (!user) return <Login onLogin={handleLogin} />;
-
-  const renderContent = () => {
-    switch (currentView) {
-      case 'DASHBOARD': return <Dashboard sales={sales} products={products} />;
-      case 'NEW_SALE': return <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={onCompleteSale} />;
-      case 'PRODUCTS': return <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={handleDeleteProduct} />;
-      case 'CLIENTS': return <Clients clients={clients} onSaveClient={handleSaveClient} onDeleteClient={handleDeleteClient} />;
-      case 'PURCHASES': return <Purchases products={products} providers={providers} purchases={purchases} onCompletePurchase={onCompletePurchase} />;
-      case 'SALES_HISTORY': return (
-        <div className="bg-white rounded-xl border p-6 shadow-sm">
-          <h2 className="text-xl font-bold mb-4">Historial de Ventas</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 uppercase text-slate-500 font-bold border-b"><tr><th className="px-4 py-3">ID</th><th className="px-4 py-3">Fecha</th><th className="px-4 py-3">Cliente</th><th className="px-4 py-3">Total</th></tr></thead>
-              <tbody className="divide-y">{sales.map(s => (<tr key={s.id} className="hover:bg-slate-50"><td className="px-4 py-3 font-mono text-xs">{s.id}</td><td className="px-4 py-3">{new Date(s.date).toLocaleDateString()}</td><td className="px-4 py-3">{s.clientName}</td><td className="px-4 py-3 font-bold text-emerald-600">${s.total.toFixed(2)}</td></tr>))}</tbody>
-            </table>
-          </div>
-        </div>
-      );
-      case 'USERS': return user.role === Role.ADMIN ? <UserManagement users={users} onSave={handleSaveUser} onDelete={handleDeleteUser} /> : <div className="p-12 text-center bg-white rounded-xl border">No autorizado</div>;
-      case 'PROVIDERS': return <ProviderManagement providers={providers} onSave={handleSaveProvider} onDelete={handleDeleteProvider} isAdmin={user.role === Role.ADMIN} />;
-      case 'REPORTS':
-        const reportChartData = Object.entries(sales.reduce((acc:any, s) => { const d = new Date(s.date).toLocaleDateString('es-ES', {weekday:'short'}); acc[d] = (acc[d] || 0) + s.total; return acc;}, {})).map(([name, total]) => ({name, total}));
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl border p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-6">Generador de Reportes</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div className="p-6 border rounded-xl bg-slate-50">
-                  <h4 className="font-bold mb-4">Ventas por Período</h4>
-                  <div className="flex gap-4">
-                    <div className="w-1/2">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Desde</label>
-                      <input type="date" className="w-full p-2 border rounded bg-white text-slate-900 cursor-pointer" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
-                    </div>
-                    <div className="w-1/2">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Hasta</label>
-                      <input type="date" className="w-full p-2 border rounded bg-white text-slate-900 cursor-pointer" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
-                    </div>
-                  </div>
-                  <button onClick={handleExportSalesPDF} className="mt-6 w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-50 relative z-10">Exportar Ventas PDF</button>
-                </div>
-                <div className="p-6 border rounded-xl bg-slate-50 flex flex-col justify-between">
-                   <h4 className="font-bold mb-2">Estado de Inventario</h4>
-                   <button onClick={handleExportInventoryPDF} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-colors shadow-lg shadow-slate-200 relative z-10">Ver PDF de Inventario</button>
-                </div>
-              </div>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={reportChartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        );
-      default: return null;
+    const loggedUser = dataService.login(username, password);
+    if (loggedUser) {
+      setUser(loggedUser);
+    } else {
+      alert('Credenciales inválidas');
     }
   };
 
+  const handleLogout = () => {
+    dataService.logout();
+    setUser(null);
+    setView('DASHBOARD');
+  };
+
+  const handleSaveProduct = (p: Product) => {
+    dataService.saveProduct(p);
+    setProducts(dataService.getProducts());
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    dataService.deleteProduct(id);
+    setProducts(dataService.getProducts());
+  };
+
+  const handleSaveClient = (c: Client) => {
+    dataService.saveClient(c);
+    setClients(dataService.getClients());
+  };
+
+  const handleDeleteClient = (id: string) => {
+    dataService.deleteClient(id);
+    setClients(dataService.getClients());
+  };
+
+  const handleSaveUser = (u: User) => {
+    dataService.saveUser(u);
+    setUsers(dataService.getUsers());
+  };
+
+  const handleDeleteUser = (id: string) => {
+    dataService.deleteUser(id);
+    setUsers(dataService.getUsers());
+  };
+
+  const handleCompleteSale = (s: Sale) => {
+    dataService.completeSale(s);
+    setSales(dataService.getSales());
+    setProducts(dataService.getProducts());
+    setClients(dataService.getClients());
+  };
+
+  const handleCompletePurchase = (p: Purchase) => {
+    dataService.completePurchase(p);
+    setPurchases(dataService.getPurchases());
+    setProducts(dataService.getProducts());
+  };
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
-    <div className="h-screen w-screen bg-slate-50 flex overflow-hidden">
-      <Sidebar currentView={currentView} setView={setCurrentView} user={user} onLogout={handleLogout} />
+    <div className="flex bg-slate-50 min-h-screen font-sans antialiased text-slate-900">
+      <Sidebar user={user} currentView={view} setView={setView} onLogout={handleLogout} />
       <main className="flex-1 ml-64 p-8 overflow-y-auto">
-        <header className="mb-8 flex items-center justify-between">
-          <span className="text-sm font-bold uppercase tracking-widest text-slate-400">{currentView.replace('_', ' ')}</span>
-          <div className="text-xs font-medium text-slate-500 bg-white px-4 py-2 rounded-full border shadow-sm">
-            {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        {view === 'DASHBOARD' && <Dashboard sales={sales} products={products} />}
+        {view === 'USERS' && <UserManagement users={users} onSave={handleSaveUser} onDelete={handleDeleteUser} />}
+        {view === 'PRODUCTS' && <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={handleDeleteProduct} />}
+        {view === 'CLIENTS' && <Clients clients={clients} onSaveClient={handleSaveClient} onDeleteClient={handleDeleteClient} />}
+        {view === 'NEW_SALE' && <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={handleCompleteSale} />}
+        {view === 'SALES_HISTORY' && (
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-slate-800">Historial de Ventas</h2>
+              <p className="text-sm text-slate-500">Registro de todas las operaciones de venta realizadas</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3">ID Venta</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3">Cliente</th>
+                    <th className="px-4 py-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {sales.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-slate-400 italic">No hay registros de ventas</td>
+                    </tr>
+                  ) : (
+                    sales.map(s => (
+                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 font-mono text-xs text-blue-600 font-bold">{s.id}</td>
+                        <td className="px-4 py-3 text-slate-600">{new Date(s.date).toLocaleString()}</td>
+                        <td className="px-4 py-3 font-medium text-slate-900">{s.clientName}</td>
+                        <td className="px-4 py-3 text-right font-bold text-slate-900">${s.total.toFixed(2)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </header>
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">{renderContent()}</div>
+        )}
+        {view === 'PURCHASES' && <Purchases products={products} providers={providers} purchases={purchases} onCompletePurchase={handleCompletePurchase} />}
+        {view === 'PROVIDERS' && (
+           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+             <div className="mb-6">
+               <h2 className="text-xl font-bold text-slate-800">Directorio de Proveedores</h2>
+               <p className="text-sm text-slate-500">Gestión de contactos para abastecimiento</p>
+             </div>
+             <div className="overflow-x-auto">
+               <table className="w-full text-sm text-left">
+                 <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                   <tr>
+                     <th className="px-4 py-3">Nombre</th>
+                     <th className="px-4 py-3">Contacto</th>
+                     <th className="px-4 py-3">Email</th>
+                     <th className="px-4 py-3">Categoría</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y">
+                   {providers.map(p => (
+                     <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                       <td className="px-4 py-3 font-bold text-slate-900">{p.name}</td>
+                       <td className="px-4 py-3 text-slate-600">{p.contactName}</td>
+                       <td className="px-4 py-3 font-mono text-xs text-slate-500">{p.email}</td>
+                       <td className="px-4 py-3">
+                         <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold uppercase">{p.category}</span>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+           </div>
+        )}
+        {view === 'REPORTS' && (
+           <div className="space-y-6">
+             <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-slate-800">Reportes Ejecutivos</h2>
+                <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Exportar PDF
+                </button>
+             </div>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                 <h3 className="text-lg font-semibold mb-6 text-slate-800">Facturación Diaria</h3>
+                 <div style={{ height: 300 }}>
+                   <ResponsiveContainer width="100%" height="100%">
+                     <BarChart data={[
+                       { name: 'Lun', value: 1200 },
+                       { name: 'Mar', value: 1900 },
+                       { name: 'Mie', value: 1500 },
+                       { name: 'Jue', value: 2100 },
+                       { name: 'Vie', value: 2400 },
+                       { name: 'Sab', value: 1800 },
+                       { name: 'Dom', value: 1100 }
+                     ]}>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                       <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
+                       <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                       <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                     </BarChart>
+                   </ResponsiveContainer>
+                 </div>
+               </div>
+               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <h4 className="text-lg font-bold text-slate-800">Módulo de Reportes Avanzados</h4>
+                    <p className="text-slate-500 text-sm mt-2 max-w-xs mx-auto">Seleccione filtros personalizados para generar métricas de rentabilidad y proyecciones de stock.</p>
+                  </div>
+               </div>
+             </div>
+           </div>
+        )}
       </main>
     </div>
   );

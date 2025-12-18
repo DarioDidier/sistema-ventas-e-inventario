@@ -1,11 +1,12 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './App.tsx';
 
 const mountApp = () => {
   console.log("Iniciando montaje de Nexus ERP...");
   const rootElement = document.getElementById('root');
+  const loadingOverlay = document.getElementById('loading-overlay');
   
   if (!rootElement) {
     console.error("CRÍTICO: No se encontró el elemento #root en el DOM.");
@@ -20,6 +21,14 @@ const mountApp = () => {
       </React.StrictMode>
     );
     console.log("Aplicación Nexus ERP renderizada correctamente.");
+    if (loadingOverlay) {
+        loadingOverlay.style.opacity = '0';
+        setTimeout(() => {
+            if (loadingOverlay.parentNode) {
+                loadingOverlay.remove();
+            }
+        }, 500);
+    }
   } catch (error) {
     console.error("Error fatal durante el renderizado de React:", error);
     rootElement.innerHTML = `
