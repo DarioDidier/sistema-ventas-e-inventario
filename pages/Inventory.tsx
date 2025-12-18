@@ -43,27 +43,61 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      const rows = text.split('\n');
+      // Normalizar saltos de línea y filtrar filas vacías
+      const rows = text.split(/\r?\n/).filter(row => row.trim().length > 0);
+      
+      if (rows.length < 2) {
+        alert("El archivo parece estar vacío o no tiene el formato correcto.");
+        return;
+      }
+
+      // Detectar delimitador (común en Excel español es ;)
+      const header = rows[0];
+      const delimiter = header.includes(';') ? ';' : ',';
+      
       let importedCount = 0;
+      let errorCount = 0;
+
       for (let i = 1; i < rows.length; i++) {
-        const columns = rows[i].split(',');
+        const columns = rows[i].split(delimiter).map(col => col.trim().replace(/^["'](.+)["']$/, '$1'));
+        
+        // Esperamos SKU, Nombre, Precio, Costo, Stock, MinStock
         if (columns.length >= 6) {
-          onSaveProduct({
-            id: `p-csv-${Date.now()}-${i}`,
-            code: columns[0].trim(),
-            name: columns[1].trim(),
-            price: parseFloat(columns[2]) || 0,
-            cost: parseFloat(columns[3]) || 0,
-            stock: parseInt(columns[4]) || 0,
-            minStock: parseInt(columns[5]) || 0,
-            description: 'Importado masivamente',
-            categoryId: 'general'
-          });
-          importedCount++;
+          try {
+            const price = parseFloat(columns[2].replace(',', '.'));
+            const cost = parseFloat(columns[3].replace(',', '.'));
+            const stock = parseInt(columns[4]);
+            const minStock = parseInt(columns[5]);
+
+            if (isNaN(price) || isNaN(cost) || isNaN(stock)) throw new Error("Datos numéricos inválidos");
+
+            onSaveProduct({
+              id: `p-csv-${Date.now()}-${i}`,
+              code: columns[0] || `SKU-${Date.now()}-${i}`,
+              name: columns[1] || "Producto sin nombre",
+              price: price,
+              cost: cost,
+              stock: stock,
+              minStock: isNaN(minStock) ? 5 : minStock,
+              description: 'Importado vía CSV/Excel',
+              categoryId: 'general'
+            });
+            importedCount++;
+          } catch (err) {
+            console.error(`Error en fila ${i}:`, err);
+            errorCount++;
+          }
         }
       }
-      alert(`Importación completada: ${importedCount} productos procesados.`);
+      
+      if (importedCount > 0) {
+        alert(`Éxito: ${importedCount} productos procesados.${errorCount > 0 ? ` (${errorCount} errores)` : ''}`);
+      } else {
+        alert("No se pudo procesar ningún producto. Verifica que el archivo CSV tenga el orden correcto: SKU, Nombre, Precio, Costo, Stock, StockMínimo.");
+      }
       setShowImportModal(false);
+      // Reset input
+      e.target.value = '';
     };
     reader.readAsText(file);
   };
@@ -120,6 +154,25 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
           </table>
         </div>
       </div>
+
+      {showImportModal && (
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[100] p-4 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl my-auto border border-slate-200 overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 border-b bg-slate-50/50 flex justify-between items-center">
+              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Importación Masiva</h3>
+              <button onClick={() => setShowImportModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full transition-colors">✕</button>
+            </div>
+            <div className="p-8 space-y-6 text-center">
+               <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+               </div>
+               <p className="text-slate-500 text-sm leading-relaxed">Selecciona un archivo CSV exportado de Excel. El archivo debe contener las columnas: <br/><span className="font-bold text-slate-700">SKU, Nombre, Precio, Costo, Stock, StockMínimo.</span></p>
+               <input type="file" accept=".csv" onChange={handleCSVImport} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+               <button onClick={() => setShowImportModal(false)} className="w-full py-4 text-slate-400 font-black text-xs uppercase tracking-widest">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[100] p-4 backdrop-blur-md overflow-y-auto">

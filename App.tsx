@@ -16,6 +16,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
  */
 const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: User) => void, onDelete: (id: string) => void }> = ({ users, currentUser, onSave, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<Partial<User>>({ 
@@ -24,6 +25,7 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
 
   const openModal = (u?: User) => {
     setShowPassword(false);
+    setShowConfirmSave(false);
     if (u) {
       setEditingUser(u);
       setForm({ ...u });
@@ -45,10 +47,19 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingUser) {
+      setShowConfirmSave(true);
+    } else {
+      executeSave();
+    }
+  };
+
+  const executeSave = () => {
     onSave({ ...form as User, id: editingUser ? editingUser.id : `u-${Date.now()}` });
     setShowModal(false);
+    setShowConfirmSave(false);
   };
 
   return (
@@ -106,64 +117,79 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
               <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{editingUser ? 'Editar Perfil' : 'Alta de Usuario'}</h3>
               <button onClick={() => setShowModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full transition-colors">✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              <div className="flex flex-col items-center">
-                <div className="w-28 h-28 rounded-full bg-slate-50 border-4 border-white shadow-xl overflow-hidden relative group cursor-pointer ring-1 ring-slate-100 transition-all hover:scale-105">
-                  {form.imageUrl ? (
-                    <img src={form.imageUrl} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
-                       <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                       <span className="text-[10px] font-black uppercase tracking-tighter">Subir Foto</span>
-                    </div>
-                  )}
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Nombre Completo</label>
-                  <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">ID Usuario</label>
-                    <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Password</label>
-                    <div className="relative">
-                      <input 
-                        type={showPassword ? "text" : "password"} 
-                        required={!editingUser} 
-                        className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 pr-10 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" 
-                        value={form.password} 
-                        onChange={e => setForm({...form, password: e.target.value})} 
-                      />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-slate-400 hover:text-blue-600 transition-colors">
-                        {showPassword ? '👁️' : '🕶️'}
-                      </button>
-                    </div>
+            
+            {!showConfirmSave ? (
+              <form onSubmit={handlePreSubmit} className="p-8 space-y-6">
+                <div className="flex flex-col items-center">
+                  <div className="w-28 h-28 rounded-full bg-slate-50 border-4 border-white shadow-xl overflow-hidden relative group cursor-pointer ring-1 ring-slate-100 transition-all hover:scale-105">
+                    {form.imageUrl ? (
+                      <img src={form.imageUrl} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
+                         <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                         <span className="text-[10px] font-black uppercase tracking-tighter">Subir Foto</span>
+                      </div>
+                    )}
+                    <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Rol de Sistema</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 font-black focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm appearance-none" value={form.role} onChange={e => setForm({...form, role: e.target.value as Role})}>
-                    <option value={Role.ADMIN}>Administrador</option>
-                    <option value={Role.SELLER}>Vendedor</option>
-                    <option value={Role.WAREHOUSE}>Almacén</option>
-                  </select>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Nombre Completo</label>
+                    <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">ID Usuario</label>
+                      <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Password</label>
+                      <div className="relative">
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          required={!editingUser} 
+                          className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 pr-10 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" 
+                          value={form.password} 
+                          onChange={e => setForm({...form, password: e.target.value})} 
+                        />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-slate-400 hover:text-blue-600 transition-colors">
+                          {showPassword ? '👁️' : '🕶️'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Rol de Sistema</label>
+                    <select className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 font-black focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm appearance-none" value={form.role} onChange={e => setForm({...form, role: e.target.value as Role})}>
+                      <option value={Role.ADMIN}>Administrador</option>
+                      <option value={Role.SELLER}>Vendedor</option>
+                      <option value={Role.WAREHOUSE}>Almacén</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                  <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-600 transition-colors">Cancelar</button>
+                  <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all">Guardar Datos</button>
+                </div>
+              </form>
+            ) : (
+              <div className="p-8 text-center space-y-6 animate-in fade-in zoom-in duration-300">
+                <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">¿Confirmar cambios?</h4>
+                <p className="text-slate-500 text-sm font-medium px-4">Estás a punto de modificar el perfil de <span className="text-slate-900 font-black">{form.name}</span>. Esta acción actualizará los permisos de acceso de inmediato.</p>
+                <div className="flex gap-3 pt-4">
+                  <button type="button" onClick={() => setShowConfirmSave(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-600 transition-colors">Regresar</button>
+                  <button type="button" onClick={executeSave} className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">Confirmar Edición</button>
                 </div>
               </div>
-
-              <div className="flex gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-600 transition-colors">Cancelar</button>
-                <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all">Guardar Datos</button>
-              </div>
-            </form>
+            )}
           </div>
         </div>
       )}
