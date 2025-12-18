@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Product, Provider, Purchase, PurchaseItem } from '../types';
+import { Product, Provider, Purchase, PurchaseItem } from '../types.ts';
 
 interface PurchasesProps {
   products: Product[];
@@ -42,7 +42,6 @@ const Purchases: React.FC<PurchasesProps> = ({ products, providers, purchases, o
         subtotal: product.cost * qtyToAdd
       }]);
     }
-    // Reset pending qty
     setPendingQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
@@ -136,50 +135,26 @@ const Purchases: React.FC<PurchasesProps> = ({ products, providers, purchases, o
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Selector de Productos */}
               <div className="lg:col-span-7 space-y-4">
                 <h4 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest border-l-4 border-blue-500 pl-2">Selección de Artículos</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {products.map(p => {
                     const pendingQty = pendingQuantities[p.id] || 1;
                     return (
-                      <div 
-                        key={p.id} 
-                        className="flex flex-col p-3 border border-slate-200 rounded-xl bg-white hover:border-blue-200 hover:shadow-md transition-all group"
-                      >
+                      <div key={p.id} className="flex flex-col p-3 border border-slate-200 rounded-xl bg-white hover:border-blue-200 hover:shadow-md transition-all group">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-sm text-slate-900 truncate">{p.name}</p>
                             <p className="text-[10px] text-slate-400 font-mono">{p.code}</p>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.stock <= p.minStock ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
-                            Stock: {p.stock}
-                          </span>
                         </div>
-                        
                         <div className="flex items-center gap-2 mt-auto">
                           <div className="flex items-center border rounded-lg overflow-hidden bg-slate-50">
-                            <button 
-                              onClick={() => handlePendingQtyChange(p.id, pendingQty - 1)}
-                              className="px-2 py-1 text-slate-500 hover:bg-slate-200"
-                            >-</button>
-                            <input 
-                              type="number"
-                              className="w-10 text-center text-xs font-bold bg-white text-slate-900 border-none outline-none py-1"
-                              value={pendingQty}
-                              onChange={(e) => handlePendingQtyChange(p.id, parseInt(e.target.value) || 1)}
-                            />
-                            <button 
-                              onClick={() => handlePendingQtyChange(p.id, pendingQty + 1)}
-                              className="px-2 py-1 text-slate-500 hover:bg-slate-200"
-                            >+</button>
+                            <button onClick={() => handlePendingQtyChange(p.id, pendingQty - 1)} className="px-2 py-1 text-slate-500 hover:bg-slate-200">-</button>
+                            <input type="number" className="w-10 text-center text-xs font-bold bg-white text-slate-900 border-none outline-none py-1" value={pendingQty} onChange={(e) => handlePendingQtyChange(p.id, parseInt(e.target.value) || 1)} />
+                            <button onClick={() => handlePendingQtyChange(p.id, pendingQty + 1)} className="px-2 py-1 text-slate-500 hover:bg-slate-200">+</button>
                           </div>
-                          <button 
-                            onClick={() => addToCart(p)}
-                            className="flex-1 bg-slate-900 text-white py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-600 transition-colors"
-                          >
-                            Añadir a Orden
-                          </button>
+                          <button onClick={() => addToCart(p)} className="flex-1 bg-slate-900 text-white py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-600 transition-colors">Añadir</button>
                         </div>
                       </div>
                     );
@@ -187,93 +162,27 @@ const Purchases: React.FC<PurchasesProps> = ({ products, providers, purchases, o
                 </div>
               </div>
 
-              {/* Detalle de la Orden */}
               <div className="lg:col-span-5 flex flex-col space-y-4">
                 <h4 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest border-l-4 border-emerald-500 pl-2">Detalles del Comprobante</h4>
-                
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5 ml-1">Proveedor Autorizado</label>
-                    <select 
-                      className="w-full p-3 border border-slate-300 rounded-xl bg-white text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
-                      value={selectedProviderId}
-                      onChange={(e) => setSelectedProviderId(e.target.value)}
-                    >
-                      <option value="">Seleccionar de la lista...</option>
-                      {providers.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5 ml-1">N° Comprobante / Factura</label>
-                    <input 
-                      className="w-full p-3 border border-slate-300 rounded-xl bg-white text-slate-900 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm" 
-                      placeholder="Ej: FAC-001-9923"
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                    />
-                  </div>
+                  <select className="w-full p-3 border border-slate-300 rounded-xl bg-white text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm" value={selectedProviderId} onChange={(e) => setSelectedProviderId(e.target.value)}>
+                    <option value="">Seleccionar Proveedor...</option>
+                    {providers.map(pr => <option key={pr.id} value={pr.id}>{pr.name}</option>)}
+                  </select>
+                  <input className="w-full p-3 border border-slate-300 rounded-xl bg-white text-slate-900 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm" placeholder="Ref. Factura" value={reference} onChange={(e) => setReference(e.target.value)} />
                 </div>
-
                 <div className="flex-1 border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-white space-y-3 overflow-y-auto max-h-[400px]">
-                  <h5 className="text-[10px] font-black text-slate-400 uppercase text-center mb-2">Lista de Compra</h5>
-                  {cart.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 opacity-30">
-                      <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" strokeWidth="2"/></svg>
-                      <p className="text-sm italic font-medium">La orden está vacía</p>
-                    </div>
-                  ) : (
-                    cart.map(item => (
-                      <div key={item.productId} className="flex flex-col p-3 bg-slate-50 rounded-xl border border-slate-200 shadow-sm animate-in slide-in-from-right-2">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-xs font-bold text-slate-900 truncate pr-2">{item.productName}</span>
-                          <button 
-                            onClick={() => setCart(cart.filter(i => i.productId !== item.productId))} 
-                            className="text-rose-400 hover:text-rose-600 transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[9px] text-slate-500 font-bold uppercase mb-1 block">Cantidad</label>
-                            <input 
-                              type="number" 
-                              className="w-full p-2 border border-slate-300 rounded-lg text-xs font-bold bg-white text-slate-900" 
-                              value={item.quantity}
-                              onChange={(e) => updateCartItem(item.productId, parseInt(e.target.value) || 1, item.costPrice)}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[9px] text-slate-500 font-bold uppercase mb-1 block">Costo Unit. ($)</label>
-                            <input 
-                              type="number" 
-                              step="0.01"
-                              className="w-full p-2 border border-slate-300 rounded-lg text-xs font-bold bg-white text-slate-900" 
-                              value={item.costPrice}
-                              onChange={(e) => updateCartItem(item.productId, item.quantity, parseFloat(e.target.value) || 0)}
-                            />
-                          </div>
-                        </div>
+                  {cart.map(item => (
+                    <div key={item.productId} className="flex flex-col p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-center mb-2 font-bold text-xs">{item.productName}</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="number" className="w-full p-2 border rounded text-xs" value={item.quantity} onChange={(e) => updateCartItem(item.productId, parseInt(e.target.value) || 1, item.costPrice)} />
+                        <input type="number" step="0.01" className="w-full p-2 border rounded text-xs" value={item.costPrice} onChange={(e) => updateCartItem(item.productId, item.quantity, parseFloat(e.target.value) || 0)} />
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
                 </div>
-
-                <div className="pt-4 border-t-2 border-slate-100 flex justify-between items-center px-2">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">Monto Neto</span>
-                    <span className="text-2xl font-black text-slate-900">
-                      ${cart.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2)}
-                    </span>
-                  </div>
-                  <button 
-                    onClick={handleFinish}
-                    disabled={!selectedProviderId || cart.length === 0}
-                    className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-emerald-100"
-                  >
-                    Confirmar Ingreso
-                  </button>
-                </div>
+                <button onClick={handleFinish} disabled={!selectedProviderId || cart.length === 0} className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-30 transition-all">Confirmar Ingreso</button>
               </div>
             </div>
           </div>

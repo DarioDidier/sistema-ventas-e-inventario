@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Product, Client, SaleItem, Sale, User } from '../types';
+import { Product, Client, SaleItem, Sale, User } from '../types.ts';
 
 interface NewSaleProps {
   products: Product[];

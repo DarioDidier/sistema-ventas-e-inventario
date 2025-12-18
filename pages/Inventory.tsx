@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Product } from '../types';
+import { Product } from '../types.ts';
 
 interface InventoryProps {
   products: Product[];
@@ -65,7 +65,6 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
     reader.onload = (event) => {
       const text = event.target?.result as string;
       const rows = text.split('\n');
-      // Omitir cabecera (primera fila)
       let importedCount = 0;
       
       for (let i = 1; i < rows.length; i++) {
@@ -177,7 +176,6 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
         </div>
       </div>
 
-      {/* Modal Importar Lote */}
       {showImportModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in duration-200">
@@ -213,14 +211,6 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
                         <td className="p-2 border font-bold">Stock Actual</td>
                         <td className="p-2 border font-bold">Stock Mínimo</td>
                       </tr>
-                      <tr className="text-slate-400 italic">
-                        <td className="p-2 border">SKU-001</td>
-                        <td className="p-2 border">Mouse Gamer</td>
-                        <td className="p-2 border">50.00</td>
-                        <td className="p-2 border">25.00</td>
-                        <td className="p-2 border">100</td>
-                        <td className="p-2 border">10</td>
-                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -250,7 +240,6 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
         </div>
       )}
 
-      {/* Modal Producto Individual */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in duration-200">
