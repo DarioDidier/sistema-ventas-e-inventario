@@ -13,7 +13,6 @@ const NewSale: React.FC<NewSaleProps> = ({ products, clients, currentUser, onCom
   const [cart, setCart] = useState<SaleItem[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
-  // Estado para manejar las cantidades seleccionadas en el catálogo
   const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({});
 
   const filteredProducts = products.filter(p => 
@@ -39,7 +38,7 @@ const NewSale: React.FC<NewSaleProps> = ({ products, clients, currentUser, onCom
       const currentInCart = existing ? existing.quantity : 0;
       
       if (currentInCart + requestedQty > product.stock) {
-        alert(`No puedes agregar ${requestedQty} unidades. Solo quedan ${product.stock - currentInCart} disponibles.`);
+        alert(`No puedes agregar ${requestedQty} unidades. Solo quedan ${product.stock - currentInCart} disponibles en total.`);
         return prev;
       }
 
@@ -59,7 +58,6 @@ const NewSale: React.FC<NewSaleProps> = ({ products, clients, currentUser, onCom
       }];
     });
 
-    // Resetear cantidad a 1 después de agregar
     setSelectedQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 

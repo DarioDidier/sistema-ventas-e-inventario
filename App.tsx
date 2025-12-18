@@ -45,7 +45,7 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
         role: Role.SELLER, 
         isActive: true, 
         imageUrl: '' 
-  });
+      });
     }
     setShowPassword(false);
     setShowModal(true);
@@ -238,7 +238,7 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
 
       {showConfirm && (
         <div className="fixed inset-0 bg-slate-900/70 flex items-center justify-center z-[60] p-4 backdrop-blur-md">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
+          <div className="bg-white rounded-2xl w-full max-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="text-blue-600" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
              </div>
