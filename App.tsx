@@ -221,7 +221,7 @@ const App: React.FC = () => {
       setProviders(dataService.getProviders());
       setPurchases(dataService.getPurchases());
     }
-  }, [user]);
+  }, [user, view]); // Reload data when view changes to ensure sync
 
   const handleLogin = (u: string, p?: string) => {
     const loggedUser = dataService.login(u, p);
@@ -361,6 +361,65 @@ const App: React.FC = () => {
                  </table>
                </div>
              </div>
+          )}
+
+          {view === 'SALES_HISTORY' && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-6">
+                <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">Registro Histórico de Ventas</h2>
+                <p className="text-sm text-slate-500">Consulta todas las transacciones realizadas</p>
+              </div>
+              <div className="overflow-x-auto custom-scrollbar force-scrollbar">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-900 text-white uppercase text-[10px] font-black tracking-[0.15em]">
+                    <tr>
+                      <th className="px-6 py-4">Cod. Operación</th>
+                      <th className="px-6 py-4">Fecha Emisión</th>
+                      <th className="px-6 py-4">Cliente</th>
+                      <th className="px-6 py-4">Artículos</th>
+                      <th className="px-6 py-4 text-right">Monto Final</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {sales.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-24 text-center text-slate-300 italic">
+                          <div className="flex flex-col items-center">
+                            <svg className="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2" strokeLinecap="round"/></svg>
+                            <p className="uppercase font-black text-[10px] tracking-widest">No hay registros de ventas</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      [...sales].reverse().map(s => (
+                        <tr key={s.id} className="hover:bg-slate-50/80 transition-all group">
+                          <td className="px-6 py-5">
+                            <span className="font-mono text-xs text-blue-600 font-black bg-blue-50 px-2 py-1 rounded-md">{s.id}</span>
+                          </td>
+                          <td className="px-6 py-5 text-slate-500 font-medium">
+                            {new Date(s.date).toLocaleDateString()} <span className="text-[10px] text-slate-300 ml-1">| {new Date(s.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                          </td>
+                          <td className="px-6 py-5">
+                            <div className="flex flex-col">
+                              <span className="font-black uppercase tracking-tighter text-slate-900">{s.clientName}</span>
+                              <span className="text-[9px] text-slate-400 font-bold uppercase">ID: {s.clientId}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-5">
+                            <span className="text-[10px] font-black bg-slate-100 px-2 py-1 rounded-lg text-slate-500 uppercase">
+                              {s.items.reduce((a,b)=>a+b.quantity, 0)} UNI
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 text-right">
+                            <span className="font-black text-slate-900 text-base tracking-tighter">${s.total.toFixed(2)}</span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           {view === 'REPORTS' && (
