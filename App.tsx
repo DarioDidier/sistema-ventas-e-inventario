@@ -255,7 +255,6 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
   );
 };
 
-// Added missing ProviderManagement component to fix compilation error
 const ProviderManagement: React.FC<{ 
   providers: Provider[], 
   onSave: (p: Provider) => void, 
@@ -315,13 +314,13 @@ const ProviderManagement: React.FC<{
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
       <div className="p-6 border-b flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold">Gestión de Proveedores</h2>
-          <p className="text-sm text-slate-500">Directorio de abastecimiento</p>
+          <h2 className="text-xl font-bold text-slate-800">Gestión de Proveedores</h2>
+          <p className="text-sm text-slate-500">Directorio de abastecimiento y suministros</p>
         </div>
         {isAdmin && (
           <button 
             onClick={() => openModal()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
           >
             + Nuevo Proveedor
           </button>
@@ -335,7 +334,8 @@ const ProviderManagement: React.FC<{
               <th className="px-6 py-4">Empresa</th>
               <th className="px-6 py-4">Contacto</th>
               <th className="px-6 py-4">Categoría</th>
-              <th className="px-6 py-4">Email / Tel</th>
+              <th className="px-6 py-4">Correo Electrónico</th>
+              <th className="px-6 py-4">Teléfono</th>
               {isAdmin && <th className="px-6 py-4 text-right">Acciones</th>}
             </tr>
           </thead>
@@ -353,23 +353,21 @@ const ProviderManagement: React.FC<{
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 font-medium text-slate-900">{p.name}</td>
-                <td className="px-6 py-4 text-slate-600">{p.contactName}</td>
+                <td className="px-6 py-4 font-bold text-slate-900">{p.name}</td>
+                <td className="px-6 py-4 text-slate-600 font-medium">{p.contactName}</td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200">
                     {p.category}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <p className="text-xs text-slate-500">{p.email}</p>
-                  <p className="text-xs text-slate-400 font-mono">{p.phone}</p>
-                </td>
+                <td className="px-6 py-4 text-slate-500 lowercase">{p.email}</td>
+                <td className="px-6 py-4 text-slate-500 font-mono text-xs">{p.phone}</td>
                 {isAdmin && (
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => openModal(p)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">Editar</button>
+                    <button onClick={() => openModal(p)} className="text-blue-600 hover:text-blue-800 font-bold mr-3">Editar</button>
                     <button 
                       onClick={() => { if(confirm('¿Eliminar proveedor?')) onDelete(p.id) }} 
-                      className="text-rose-600 hover:text-rose-800 font-medium"
+                      className="text-rose-600 hover:text-rose-800 font-bold"
                     >
                       Borrar
                     </button>
@@ -404,30 +402,30 @@ const ProviderManagement: React.FC<{
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-1 md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre de la Empresa</label>
-                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre de la Empresa</label>
+                  <input required placeholder="Ej. TechCorp S.A." className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Contacto Principal</label>
-                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.contactName} onChange={e => setForm({...form, contactName: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Contacto Principal</label>
+                  <input required placeholder="Nombre de la persona" className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.contactName} onChange={e => setForm({...form, contactName: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
-                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.category} onChange={e => setForm({...form, category: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Categoría</label>
+                  <input required placeholder="Ej. Tecnología" className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-                  <input type="email" required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Email</label>
+                  <input type="email" required placeholder="ventas@empresa.com" className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label>
-                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Teléfono</label>
+                  <input required placeholder="+54 11..." className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
                 </div>
               </div>
 
               <div className="flex justify-end space-x-3 pt-6 border-t">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg">Cancelar</button>
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition-all">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
+                <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition-all transform active:scale-[0.98]">
                   {editingProvider ? 'Guardar Cambios' : 'Registrar Proveedor'}
                 </button>
               </div>
@@ -596,6 +594,96 @@ const App: React.FC = () => {
     win.document.close();
   };
 
+  const handleExportInventoryPDF = () => {
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Por favor, permite las ventanas emergentes.');
+      return;
+    }
+    const totalStockValue = products.reduce((acc, p) => acc + (p.stock * p.cost), 0);
+    const lowStockItems = products.filter(p => p.stock <= p.minStock).length;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Reporte de Inventario - Nexus ERP</title>
+          <style>
+            body { font-family: 'Inter', 'Segoe UI', sans-serif; padding: 40px; color: #1e293b; background: white; }
+            .header { border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+            .logo { color: #1e3a8a; font-weight: 800; font-size: 24px; }
+            .stats { display: grid; grid-template-cols: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+            .stat-card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; }
+            .stat-label { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; }
+            .stat-value { font-size: 18px; font-weight: bold; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+            th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; color: #64748b; }
+            td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+            .warning { color: #e11d48; font-weight: bold; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="logo">NEXUS ERP</div>
+              <p style="margin:0; color:#64748b;">Reporte de Inventario Físico</p>
+            </div>
+            <div style="text-align:right;">
+              <strong>Fecha:</strong> ${new Date().toLocaleString()}<br>
+              <strong>Generado por:</strong> ${user?.name}
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-label">Total Productos</div>
+              <div class="stat-value">${products.length}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Valor Total (Costo)</div>
+              <div class="stat-value">$${totalStockValue.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+            </div>
+            <div class="stat-card" style="${lowStockItems > 0 ? 'border-color:#fda4af; background:#fff1f2;' : ''}">
+              <div class="stat-label">Alertas de Stock</div>
+              <div class="stat-value ${lowStockItems > 0 ? 'warning' : ''}">${lowStockItems}</div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Costo</th>
+                <th>Precio</th>
+                <th>V. Inventario</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${products.map(p => `
+                <tr>
+                  <td style="font-family: monospace;">${p.code}</td>
+                  <td>${p.name}</td>
+                  <td class="${p.stock <= p.minStock ? 'warning' : ''}">${p.stock}</td>
+                  <td>${p.minStock}</td>
+                  <td>$${p.cost.toFixed(2)}</td>
+                  <td>$${p.price.toFixed(2)}</td>
+                  <td style="font-weight:bold;">$${(p.stock * p.cost).toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top: 50px; text-align: center;" class="no-print">
+            <button onclick="window.print()" style="padding:12px 24px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">Imprimir Reporte</button>
+          </div>
+        </body>
+      </html>
+    `;
+    win.document.write(html);
+    win.document.close();
+  };
+
   if (!user) {
     return <Login onLogin={handleLogin} />;
   }
@@ -647,7 +735,7 @@ const App: React.FC = () => {
                     <h4 className="font-bold mb-2">Estado de Almacén</h4>
                     <p className="text-xs text-slate-500 mb-4">Listado de existencias con alertas de stock crítico.</p>
                   </div>
-                  <button onClick={() => window.alert('Función de PDF de Inventario')} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-all">Ver PDF de Inventario</button>
+                  <button onClick={handleExportInventoryPDF} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-all">Ver PDF de Inventario</button>
                 </div>
               </div>
               <div className="h-[300px] w-full bg-white border rounded-xl p-4">
