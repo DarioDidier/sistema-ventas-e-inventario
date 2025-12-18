@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <style>
         body, html, #root { height: 100%; margin: 0; padding: 0; background-color: #f8fafc; }
         body { font-family: 'Inter', sans-serif; overflow-x: hidden; overflow-y: auto; }
@@ -24,26 +25,12 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-            display: block !important;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        .force-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f1f5f9;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; display: block !important; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
     
     <script>
-      // Babel Standalone ya incluye preset-env, no es necesario registrarlo manualmente.
       window.esmsInitOptions = {
         shimMode: true,
         handleMimeErrors: true,
@@ -57,7 +44,7 @@
               const transformed = Babel.transform(source, {
                 filename: url,
                 presets: ['typescript', 'react'],
-                plugins: [] 
+                plugins: []
               }).code;
 
               return new Response(transformed, {
@@ -76,27 +63,27 @@
 
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js" crossorigin="anonymous"></script>
 
-<script type="importmap-shim">
-{
-  "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
-    "./App.tsx": "./App.tsx",
-    "./types.ts": "./types.ts",
-    "./constants.tsx": "./constants.tsx",
-    "./services/dataService.ts": "./services/dataService.ts",
-    "./pages/Dashboard.tsx": "./pages/Dashboard.tsx",
-    "./pages/Login.tsx": "./pages/Login.tsx",
-    "./pages/NewSale.tsx": "./pages/NewSale.tsx",
-    "./pages/Inventory.tsx": "./pages/Inventory.tsx",
-    "./pages/Clients.tsx": "./pages/Clients.tsx",
-    "./pages/Purchases.tsx": "./pages/Purchases.tsx",
-    "./components/Sidebar.tsx": "./components/Sidebar.tsx"
-  }
-}
-</script>
+    <script type="importmap-shim">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19.0.0",
+        "react-dom": "https://esm.sh/react-dom@19.0.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+        "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
+        "./App.tsx": "./App.tsx",
+        "./types.ts": "./types.ts",
+        "./constants.tsx": "./constants.tsx",
+        "./services/dataService.ts": "./services/dataService.ts",
+        "./pages/Dashboard.tsx": "./pages/Dashboard.tsx",
+        "./pages/Login.tsx": "./pages/Login.tsx",
+        "./pages/NewSale.tsx": "./pages/NewSale.tsx",
+        "./pages/Inventory.tsx": "./pages/Inventory.tsx",
+        "./pages/Clients.tsx": "./pages/Clients.tsx",
+        "./pages/Purchases.tsx": "./pages/Purchases.tsx",
+        "./components/Sidebar.tsx": "./components/Sidebar.tsx"
+      }
+    }
+    </script>
 <script type="importmap">
 {
   "imports": {
@@ -111,7 +98,7 @@
 <body class="bg-slate-50 text-slate-900 custom-scrollbar">
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p class="mt-4 text-slate-500 font-medium font-bold uppercase tracking-widest text-[10px]">Cargando Nexus ERP...</p>
+        <p class="mt-4 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cargando Nexus ERP...</p>
     </div>
     <div id="root"></div>
     <script>
