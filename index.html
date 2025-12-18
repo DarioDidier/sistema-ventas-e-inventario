@@ -43,8 +43,7 @@
     </style>
     
     <script>
-      Babel.registerPreset('env', { targets: { browsers: ['last 2 versions'] } });
-      
+      // Babel Standalone ya incluye preset-env, no es necesario registrarlo manualmente.
       window.esmsInitOptions = {
         shimMode: true,
         handleMimeErrors: true,
@@ -55,11 +54,10 @@
           if (url.endsWith('.tsx') || url.endsWith('.ts')) {
             const source = await res.text();
             try {
-              // We transpile to standard ES modules, letting es-module-shims handle the module linkage
               const transformed = Babel.transform(source, {
                 filename: url,
                 presets: ['typescript', 'react'],
-                plugins: [] // Removed transform-modules-umd to avoid scope issues with es-module-shims
+                plugins: [] 
               }).code;
 
               return new Response(transformed, {
@@ -78,7 +76,7 @@
 
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js" crossorigin="anonymous"></script>
 
-<script type="importmap">
+<script type="importmap-shim">
 {
   "imports": {
     "react": "https://esm.sh/react@19.0.0",
@@ -95,9 +93,17 @@
     "./pages/Inventory.tsx": "./pages/Inventory.tsx",
     "./pages/Clients.tsx": "./pages/Clients.tsx",
     "./pages/Purchases.tsx": "./pages/Purchases.tsx",
-    "./components/Sidebar.tsx": "./components/Sidebar.tsx",
+    "./components/Sidebar.tsx": "./components/Sidebar.tsx"
+  }
+}
+</script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
   }
 }
 </script>

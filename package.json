@@ -11,18 +11,7 @@
   "dependencies": {
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "recharts": "2.15.0",
-    "./App.tsx": "latest",
-    "./types.ts": "latest",
-    "./constants.tsx": "latest",
-    "./services/dataService.ts": "latest",
-    "./pages/Dashboard.tsx": "latest",
-    "./pages/Login.tsx": "latest",
-    "./pages/NewSale.tsx": "latest",
-    "./pages/Inventory.tsx": "latest",
-    "./pages/Clients.tsx": "latest",
-    "./pages/Purchases.tsx": "latest",
-    "./components/Sidebar.tsx": "latest"
+    "recharts": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
