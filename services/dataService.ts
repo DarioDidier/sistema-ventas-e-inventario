@@ -1,5 +1,5 @@
 
-import { User, Role, Client, Provider, Product, Sale } from '../types';
+import { User, Role, Client, Provider, Product, Sale, Purchase } from '../types';
 
 const INITIAL_USERS: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@nexus.com', username: 'admin', password: 'password', role: Role.ADMIN, isActive: true },
@@ -31,6 +31,7 @@ const STORAGE_KEYS = {
   PRODUCTS: 'nexus_products',
   PROVIDERS: 'nexus_providers',
   SALES: 'nexus_sales',
+  PURCHASES: 'nexus_purchases',
   CURRENT_USER: 'nexus_current_user'
 };
 
@@ -57,12 +58,7 @@ class DataService {
   login(username: string, password?: string): User | null {
     const users = this.getUsers();
     const user = users.find(u => u.username === username && u.isActive);
-    
-    // Si hay password definido, validar. Si no (demo antigua), permitir login básico.
-    if (user && user.password && password !== user.password) {
-      return null;
-    }
-    
+    if (user && user.password && password !== user.password) return null;
     if (user) {
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
       return user;
@@ -74,60 +70,49 @@ class DataService {
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
   }
 
-  // Users
+  // Common CRUDs
   getUsers(): User[] { return this.getData(STORAGE_KEYS.USERS, INITIAL_USERS); }
   saveUser(user: User): void {
     const users = this.getUsers();
     const idx = users.findIndex(u => u.id === user.id);
-    if (idx > -1) users[idx] = user;
-    else users.push(user);
+    if (idx > -1) users[idx] = user; else users.push(user);
     this.setData(STORAGE_KEYS.USERS, users);
   }
   deleteUser(userId: string): void {
-    const users = this.getUsers().filter(u => u.id !== userId);
-    this.setData(STORAGE_KEYS.USERS, users);
+    this.setData(STORAGE_KEYS.USERS, this.getUsers().filter(u => u.id !== userId));
   }
 
-  // Clients
   getClients(): Client[] { return this.getData(STORAGE_KEYS.CLIENTS, INITIAL_CLIENTS); }
   saveClient(client: Client): void {
     const clients = this.getClients();
     const idx = clients.findIndex(c => c.id === client.id);
-    if (idx > -1) clients[idx] = client;
-    else clients.push(client);
+    if (idx > -1) clients[idx] = client; else clients.push(client);
     this.setData(STORAGE_KEYS.CLIENTS, clients);
   }
   deleteClient(clientId: string): void {
-    const clients = this.getClients().filter(c => c.id !== clientId);
-    this.setData(STORAGE_KEYS.CLIENTS, clients);
+    this.setData(STORAGE_KEYS.CLIENTS, this.getClients().filter(c => c.id !== clientId));
   }
 
-  // Providers
   getProviders(): Provider[] { return this.getData(STORAGE_KEYS.PROVIDERS, INITIAL_PROVIDERS); }
   saveProvider(provider: Provider): void {
     const providers = this.getProviders();
     const idx = providers.findIndex(p => p.id === provider.id);
-    if (idx > -1) providers[idx] = provider;
-    else providers.push(provider);
+    if (idx > -1) providers[idx] = provider; else providers.push(provider);
     this.setData(STORAGE_KEYS.PROVIDERS, providers);
   }
   deleteProvider(providerId: string): void {
-    const providers = this.getProviders().filter(p => p.id !== providerId);
-    this.setData(STORAGE_KEYS.PROVIDERS, providers);
+    this.setData(STORAGE_KEYS.PROVIDERS, this.getProviders().filter(p => p.id !== providerId));
   }
 
-  // Products
   getProducts(): Product[] { return this.getData(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS); }
   saveProduct(product: Product): void {
     const products = this.getProducts();
     const idx = products.findIndex(p => p.id === product.id);
-    if (idx > -1) products[idx] = product;
-    else products.push(product);
+    if (idx > -1) products[idx] = product; else products.push(product);
     this.setData(STORAGE_KEYS.PRODUCTS, products);
   }
   deleteProduct(productId: string): void {
-    const products = this.getProducts().filter(p => p.id !== productId);
-    this.setData(STORAGE_KEYS.PRODUCTS, products);
+    this.setData(STORAGE_KEYS.PRODUCTS, this.getProducts().filter(p => p.id !== productId));
   }
 
   // Sales
@@ -137,23 +122,36 @@ class DataService {
     sales.push(sale);
     this.setData(STORAGE_KEYS.SALES, sales);
 
-    // Update product stock
     const products = this.getProducts();
     sale.items.forEach(item => {
       const prod = products.find(p => p.id === item.productId);
-      if (prod) {
-        prod.stock -= item.quantity;
-      }
+      if (prod) prod.stock -= item.quantity;
     });
     this.setData(STORAGE_KEYS.PRODUCTS, products);
 
-    // Update client spend
     const clients = this.getClients();
     const client = clients.find(c => c.id === sale.clientId);
-    if (client) {
-      client.totalSpent += sale.total;
-    }
+    if (client) client.totalSpent += sale.total;
     this.setData(STORAGE_KEYS.CLIENTS, clients);
+  }
+
+  // Purchases
+  getPurchases(): Purchase[] { return this.getData(STORAGE_KEYS.PURCHASES, []); }
+  completePurchase(purchase: Purchase): void {
+    const purchases = this.getPurchases();
+    purchases.push(purchase);
+    this.setData(STORAGE_KEYS.PURCHASES, purchases);
+
+    const products = this.getProducts();
+    purchase.items.forEach(item => {
+      const prod = products.find(p => p.id === item.productId);
+      if (prod) {
+        prod.stock += item.quantity;
+        // Opcional: Actualizar el costo del producto con el costo de la última compra
+        prod.cost = item.costPrice;
+      }
+    });
+    this.setData(STORAGE_KEYS.PRODUCTS, products);
   }
 }
 

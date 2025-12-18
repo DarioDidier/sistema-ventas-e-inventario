@@ -10,7 +10,7 @@ export interface User {
   name: string;
   email: string;
   username: string;
-  password?: string; // Campo añadido para seguridad
+  password?: string;
   role: Role;
   isActive: boolean;
   imageUrl?: string;
@@ -19,7 +19,7 @@ export interface User {
 export interface Client {
   id: string;
   name: string;
-  taxId: string; // RUC/NIT/RFC
+  taxId: string;
   email: string;
   phone: string;
   address: string;
@@ -69,4 +69,22 @@ export interface Sale {
   paymentMethod: 'CASH' | 'CARD' | 'TRANSFER';
 }
 
-export type ViewType = 'DASHBOARD' | 'USERS' | 'CLIENTS' | 'PROVIDERS' | 'PRODUCTS' | 'SALES_HISTORY' | 'NEW_SALE' | 'REPORTS';
+export interface PurchaseItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  costPrice: number;
+  subtotal: number;
+}
+
+export interface Purchase {
+  id: string;
+  date: string;
+  providerId: string;
+  providerName: string;
+  items: PurchaseItem[];
+  total: number;
+  reference?: string;
+}
+
+export type ViewType = 'DASHBOARD' | 'USERS' | 'CLIENTS' | 'PROVIDERS' | 'PRODUCTS' | 'SALES_HISTORY' | 'NEW_SALE' | 'REPORTS' | 'PURCHASES';

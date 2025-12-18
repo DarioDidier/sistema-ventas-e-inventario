@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user, onLogout 
     { id: 'CLIENTS' as ViewType, label: 'Clientes', icon: ICONS.Clients, roles: [Role.ADMIN, Role.SELLER] },
     { id: 'PROVIDERS' as ViewType, label: 'Proveedores', icon: ICONS.Providers, roles: [Role.ADMIN, Role.WAREHOUSE] },
     { id: 'PRODUCTS' as ViewType, label: 'Inventario', icon: ICONS.Inventory, roles: [Role.ADMIN, Role.WAREHOUSE, Role.SELLER] },
+    { id: 'PURCHASES' as ViewType, label: 'Compras', icon: ICONS.Providers, roles: [Role.ADMIN, Role.WAREHOUSE] },
     { id: 'NEW_SALE' as ViewType, label: 'Nueva Venta', icon: ICONS.Sales, roles: [Role.ADMIN, Role.SELLER] },
     { id: 'SALES_HISTORY' as ViewType, label: 'Historial Ventas', icon: ICONS.Sales, roles: [Role.ADMIN, Role.SELLER] },
     { id: 'REPORTS' as ViewType, label: 'Reportes', icon: ICONS.Reports, roles: [Role.ADMIN] },
