@@ -12,12 +12,7 @@ const Clients: React.FC<ClientsProps> = ({ clients, onSaveClient, onDeleteClient
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [form, setForm] = useState<Partial<Client>>({
-    name: '',
-    taxId: '',
-    email: '',
-    phone: '',
-    address: '',
-    imageUrl: ''
+    name: '', taxId: '', email: '', phone: '', address: '', imageUrl: ''
   });
 
   const openModal = (client?: Client) => {
@@ -26,14 +21,7 @@ const Clients: React.FC<ClientsProps> = ({ clients, onSaveClient, onDeleteClient
       setForm(client);
     } else {
       setEditingClient(null);
-      setForm({
-        name: '',
-        taxId: '',
-        email: '',
-        phone: '',
-        address: '',
-        imageUrl: ''
-      });
+      setForm({ name: '', taxId: '', email: '', phone: '', address: '', imageUrl: '' });
     }
     setShowModal(true);
   };
@@ -42,9 +30,7 @@ const Clients: React.FC<ClientsProps> = ({ clients, onSaveClient, onDeleteClient
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm({ ...form, imageUrl: reader.result as string });
-      };
+      reader.onloadend = () => setForm({ ...form, imageUrl: reader.result as string });
       reader.readAsDataURL(file);
     }
   };
@@ -60,59 +46,40 @@ const Clients: React.FC<ClientsProps> = ({ clients, onSaveClient, onDeleteClient
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <div className="p-6 border-b flex justify-between items-center">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold">Directorio de Clientes</h2>
-          <p className="text-sm text-slate-500">Listado de clientes registrados</p>
+          <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">Base de Clientes</h2>
+          <p className="text-sm text-slate-500">Listado de personas y corporaciones</p>
         </div>
-        <button 
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          + Registrar Cliente
-        </button>
+        <button onClick={() => openModal()} className="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">+ Nuevo Cliente</button>
       </div>
-      <div className="overflow-x-auto">
+      
+      <div className="overflow-x-auto custom-scrollbar force-scrollbar">
         <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
+          <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
             <tr>
               <th className="px-6 py-4">Foto</th>
-              <th className="px-6 py-4">Nombre</th>
-              <th className="px-6 py-4">ID Fiscal</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Teléfono</th>
+              <th className="px-6 py-4">Nombre Comercial</th>
+              <th className="px-6 py-4 hidden md:table-cell">ID Fiscal</th>
+              <th className="px-6 py-4 hidden lg:table-cell">Contacto</th>
               <th className="px-6 py-4 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-slate-100">
             {clients.map(c => (
               <tr key={c.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-                    {c.imageUrl ? (
-                      <img src={c.imageUrl} alt={c.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold">
-                        {c.name.charAt(0)}
-                      </div>
-                    )}
+                  <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200 shadow-inner">
+                    {c.imageUrl ? <img src={c.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 font-black">{c.name.charAt(0)}</div>}
                   </div>
                 </td>
-                <td className="px-6 py-4 font-medium text-slate-900">{c.name}</td>
-                <td className="px-6 py-4 text-slate-500">{c.taxId}</td>
-                <td className="px-6 py-4 text-slate-600 font-mono text-xs">{c.email}</td>
-                <td className="px-6 py-4 text-slate-600 font-mono text-xs">{c.phone}</td>
-                <td className="px-6 py-4 text-right">
-                  <button onClick={() => openModal(c)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">Editar</button>
-                  {c.id !== 'cf' && (
-                    <button 
-                      onClick={() => { if(confirm('¿Eliminar cliente?')) onDeleteClient(c.id) }} 
-                      className="text-rose-600 hover:text-rose-800 font-medium"
-                    >
-                      Borrar
-                    </button>
-                  )}
+                <td className="px-6 py-4 font-black text-slate-900 uppercase tracking-tighter">{c.name}</td>
+                <td className="px-6 py-4 text-slate-500 hidden md:table-cell font-mono">{c.taxId}</td>
+                <td className="px-6 py-4 text-slate-400 hidden lg:table-cell text-xs font-bold uppercase">{c.phone}</td>
+                <td className="px-6 py-4 text-right whitespace-nowrap">
+                  <button onClick={() => openModal(c)} className="text-blue-600 hover:text-blue-800 font-black text-[11px] uppercase tracking-widest mr-4">Editar</button>
+                  {c.id !== 'cf' && <button onClick={() => { if(confirm('¿Eliminar cliente?')) onDeleteClient(c.id) }} className="text-rose-400 hover:text-rose-600 font-black text-[11px] uppercase tracking-widest">Borrar</button>}
                 </td>
               </tr>
             ))}
@@ -121,87 +88,46 @@ const Clients: React.FC<ClientsProps> = ({ clients, onSaveClient, onDeleteClient
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in duration-200">
-            <div className="p-6 border-b bg-slate-50">
-              <h3 className="text-lg font-bold text-slate-900">{editingClient ? 'Editar Cliente' : 'Nuevo Cliente'}</h3>
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[100] p-4 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl my-auto border border-slate-200 overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 border-b bg-slate-50/50 flex justify-between items-center">
+              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{editingClient ? 'Expediente de Cliente' : 'Alta de Cliente'}</h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full transition-colors">✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="flex flex-col items-center mb-4">
-                <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden mb-2 relative group">
-                  {form.imageUrl ? (
-                    <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    </div>
-                  )}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageChange}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                </div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold">Clic para subir foto</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="col-span-1 md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Completo</label>
-                  <input 
-                    required 
-                    placeholder="Ej. Juan Pérez" 
-                    className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
-                    value={form.name} 
-                    onChange={e => setForm({...form, name: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">ID Fiscal / DNI</label>
-                  <input 
-                    required 
-                    placeholder="12345678" 
-                    className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
-                    value={form.taxId} 
-                    onChange={e => setForm({...form, taxId: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-                  <input 
-                    type="email" 
-                    placeholder="correo@ejemplo.com" 
-                    className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
-                    value={form.email} 
-                    onChange={e => setForm({...form, email: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label>
-                  <input 
-                    placeholder="+54 9 11..." 
-                    className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
-                    value={form.phone} 
-                    onChange={e => setForm({...form, phone: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dirección</label>
-                  <input 
-                    placeholder="Calle Falsa 123" 
-                    className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
-                    value={form.address} 
-                    onChange={e => setForm({...form, address: e.target.value})} 
-                  />
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              <div className="flex flex-col items-center mb-2">
+                <div className="w-24 h-24 rounded-full bg-slate-50 border-4 border-white shadow-xl overflow-hidden relative group cursor-pointer ring-1 ring-slate-100 transition-all">
+                  {form.imageUrl ? <img src={form.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-200 uppercase font-black text-[10px]">Cargar Foto</div>}
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-6 border-t">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg">Cancelar</button>
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
-                  {editingClient ? 'Guardar Cambios' : 'Registrar Cliente'}
-                </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Nombre / Razón Social</label>
+                  <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold uppercase tracking-tighter" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">ID Fiscal / DNI</label>
+                  <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" value={form.taxId} onChange={e => setForm({...form, taxId: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Email</label>
+                  <input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold text-sm" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Teléfono</label>
+                  <input className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold text-sm" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Dirección</label>
+                  <input className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold text-sm" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-6 border-t border-slate-100 mt-4">
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-600 transition-colors">Cerrar</button>
+                <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">Registrar Cambios</button>
               </div>
             </form>
           </div>

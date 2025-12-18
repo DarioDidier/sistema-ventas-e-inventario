@@ -12,20 +12,14 @@ import Purchases from './pages/Purchases.tsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 /**
- * UserManagement sub-component
+ * UserManagement Sub-component
  */
-const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDelete: (id: string) => void }> = ({ users, onSave, onDelete }) => {
+const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: User) => void, onDelete: (id: string) => void }> = ({ users, currentUser, onSave, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState<Partial<User>>({ 
-    name: '', 
-    email: '', 
-    username: '', 
-    password: '', 
-    role: Role.SELLER, 
-    isActive: true, 
-    imageUrl: '' 
+    name: '', email: '', username: '', password: '', role: Role.SELLER, isActive: true, imageUrl: '' 
   });
 
   const openModal = (u?: User) => {
@@ -45,7 +39,7 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setForm({ ...form, imageUrl: reader.result as string });
+        setForm(prev => ({ ...prev, imageUrl: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -53,135 +47,121 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const userData: User = { ...form as User, id: editingUser ? editingUser.id : `u-${Date.now()}` };
-    onSave(userData);
+    onSave({ ...form as User, id: editingUser ? editingUser.id : `u-${Date.now()}` });
     setShowModal(false);
   };
 
   return (
-    <div className="bg-white rounded-xl border p-4 md:p-6 shadow-sm">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 md:p-6 shadow-sm">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Gestión de Usuarios</h2>
-          <p className="text-sm text-slate-500">Administra el acceso y roles del personal</p>
+          <h2 className="text-xl font-black text-slate-800 tracking-tight">GESTIÓN DE PERSONAL</h2>
+          <p className="text-sm text-slate-500">Administra accesos y perfiles del sistema</p>
         </div>
-        <button onClick={() => openModal()} className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">+ Nuevo Usuario</button>
+        <button onClick={() => openModal()} className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">+ Nuevo Usuario</button>
       </div>
       
-      <div className="overflow-x-auto -mx-4 md:mx-0 custom-scrollbar force-scrollbar">
-        <div className="inline-block min-w-full align-middle">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
-              <tr className="border-b">
-                <th className="px-4 py-3">Foto</th>
-                <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3 hidden md:table-cell">Usuario</th>
-                <th className="px-4 py-3">Rol</th>
-                <th className="px-4 py-3 hidden sm:table-cell">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+      <div className="overflow-x-auto custom-scrollbar force-scrollbar">
+        <table className="min-w-full text-sm text-left">
+          <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-widest">
+            <tr className="border-b">
+              <th className="px-4 py-3">Perfil</th>
+              <th className="px-4 py-3">Nombre Completo</th>
+              <th className="px-4 py-3 hidden md:table-cell">Usuario</th>
+              <th className="px-4 py-3">Rol</th>
+              <th className="px-4 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {users.map(u => (
+              <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                <td className="px-4 py-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200 shadow-inner">
+                    {u.imageUrl ? <img src={u.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold">{u.name.charAt(0)}</div>}
+                  </div>
+                </td>
+                <td className="px-4 py-3 font-bold text-slate-900">{u.name} {u.id === currentUser.id && <span className="ml-2 text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full uppercase font-black">Tú</span>}</td>
+                <td className="px-4 py-3 font-mono text-xs text-slate-500 hidden md:table-cell">{u.username}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${u.role === Role.ADMIN ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>
+                    {u.role}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <button onClick={() => openModal(u)} className="text-blue-600 hover:text-blue-800 font-black mr-4 uppercase text-[11px] tracking-widest">Editar</button>
+                  {u.id !== currentUser.id && (
+                    <button onClick={() => onDelete(u.id)} className="text-rose-400 hover:text-rose-600 font-black uppercase text-[11px] tracking-widest">Borrar</button>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y">
-              {users.map(u => (
-                <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-slate-100 overflow-hidden border border-slate-200 shadow-inner">
-                      {u.imageUrl ? <img src={u.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400 text-[10px] font-bold">{u.name.charAt(0)}</div>}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-slate-900">{u.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500 hidden md:table-cell">{u.username}</td>
-                  <td className="px-4 py-3">
-                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${u.role === Role.ADMIN ? 'bg-purple-100 text-purple-700' : u.role === Role.SELLER ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                       {u.role}
-                     </span>
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
-                    <span className={`w-2 h-2 rounded-full inline-block mr-2 ${u.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                    {u.isActive ? 'Activo' : 'Inactivo'}
-                  </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <button onClick={() => openModal(u)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">Editar</button>
-                    <button onClick={() => { if(confirm('¿Eliminar usuario?')) onDelete(u.id) }} className="text-rose-600 hover:text-rose-800 font-medium">Borrar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100] p-4 backdrop-blur-sm overflow-y-auto custom-scrollbar">
-          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in duration-200 my-auto">
-            <div className="p-6 border-b bg-slate-50 flex justify-between items-center">
-              <h3 className="text-lg font-bold">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full">✕</button>
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[100] p-4 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl my-auto border border-white/20 overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 border-b bg-slate-50/50 flex justify-between items-center">
+              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{editingUser ? 'Editar Perfil' : 'Alta de Usuario'}</h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 p-2 hover:bg-slate-100 rounded-full transition-colors">✕</button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {/* Imagen de Perfil (Solicitud Usuario) */}
-              <div className="flex flex-col items-center mb-4">
-                <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden mb-2 relative group cursor-pointer hover:border-blue-400 transition-all">
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              <div className="flex flex-col items-center">
+                <div className="w-28 h-28 rounded-full bg-slate-50 border-4 border-white shadow-xl overflow-hidden relative group cursor-pointer ring-1 ring-slate-100 transition-all hover:scale-105">
                   {form.imageUrl ? (
-                    <img src={form.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={form.imageUrl} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
+                       <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                       <span className="text-[10px] font-black uppercase tracking-tighter">Subir Foto</span>
                     </div>
                   )}
                   <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
-                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Cambiar Imagen</p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
-                <input required className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-                <input type="email" required className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Usuario</label>
-                  <input required className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Nombre Completo</label>
+                  <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña</label>
-                  <div className="relative">
-                    <input 
-                      type={showPassword ? "text" : "password"} 
-                      required={!editingUser} 
-                      className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900 pr-10 focus:ring-2 focus:ring-blue-500 outline-none" 
-                      value={form.password} 
-                      onChange={e => setForm({...form, password: e.target.value})} 
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-blue-600 transition-colors"
-                    >
-                      {showPassword ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      )}
-                    </button>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">ID Usuario</label>
+                    <input required className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Password</label>
+                    <div className="relative">
+                      <input 
+                        type={showPassword ? "text" : "password"} 
+                        required={!editingUser} 
+                        className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 pr-10 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm font-mono text-sm" 
+                        value={form.password} 
+                        onChange={e => setForm({...form, password: e.target.value})} 
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-slate-400 hover:text-blue-600 transition-colors">
+                        {showPassword ? '👁️' : '🕶️'}
+                      </button>
+                    </div>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Rol de Sistema</label>
+                  <select className="w-full px-4 py-3 border border-slate-200 rounded-2xl bg-white text-slate-900 font-black focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm appearance-none" value={form.role} onChange={e => setForm({...form, role: e.target.value as Role})}>
+                    <option value={Role.ADMIN}>Administrador</option>
+                    <option value={Role.SELLER}>Vendedor</option>
+                    <option value={Role.WAREHOUSE}>Almacén</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Rol</label>
-                <select className="w-full px-3 py-2 border rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none appearance-none" value={form.role} onChange={e => setForm({...form, role: e.target.value as Role})}>
-                  <option value={Role.ADMIN}>Administrador</option>
-                  <option value={Role.SELLER}>Vendedor</option>
-                  <option value={Role.WAREHOUSE}>Almacén</option>
-                </select>
-              </div>
-              <div className="flex justify-end space-x-3 pt-4 border-t mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-bold text-sm uppercase">Cancelar</button>
-                <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-black text-sm uppercase rounded-lg shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">Guardar</button>
+
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-600 transition-colors">Cancelar</button>
+                <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all">Guardar Datos</button>
               </div>
             </form>
           </div>
@@ -198,7 +178,6 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(dataService.getCurrentUser());
   const [view, setView] = useState<ViewType>('DASHBOARD');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -217,12 +196,25 @@ const App: React.FC = () => {
     }
   }, [user]);
 
-  const handleLogin = (username: string, password?: string) => {
-    const loggedUser = dataService.login(username, password);
+  const handleLogin = (u: string, p?: string) => {
+    const loggedUser = dataService.login(u, p);
     if (loggedUser) {
       setUser(loggedUser);
-    } else {
-      alert('Credenciales inválidas');
+      setView('DASHBOARD');
+    } else alert('Credenciales inválidas');
+  };
+
+  const handleSaveUser = (u: User) => {
+    dataService.saveUser(u);
+    const updatedUsers = dataService.getUsers();
+    setUsers(updatedUsers);
+    
+    // Automatic profile photo update logic
+    if (u.id === user?.id) {
+      const refreshedUser = { ...u };
+      delete refreshedUser.password; 
+      setUser(refreshedUser);
+      localStorage.setItem('nexus_current_user', JSON.stringify(refreshedUser));
     }
   };
 
@@ -230,127 +222,127 @@ const App: React.FC = () => {
     dataService.logout();
     setUser(null);
     setView('DASHBOARD');
-    setIsSidebarOpen(false);
   };
 
-  const handleSaveProduct = (p: Product) => {
-    dataService.saveProduct(p);
-    setProducts(dataService.getProducts());
-  };
-
-  const handleDeleteProduct = (id: string) => {
-    dataService.deleteProduct(id);
-    setProducts(dataService.getProducts());
-  };
-
-  const handleSaveClient = (c: Client) => {
-    dataService.saveClient(c);
-    setClients(dataService.getClients());
-  };
-
-  const handleDeleteClient = (id: string) => {
-    dataService.deleteClient(id);
-    setClients(dataService.getClients());
-  };
-
-  const handleSaveUser = (u: User) => {
-    dataService.saveUser(u);
-    setUsers(dataService.getUsers());
-  };
-
-  const handleDeleteUser = (id: string) => {
-    dataService.deleteUser(id);
-    setUsers(dataService.getUsers());
-  };
-
-  const handleCompleteSale = (s: Sale) => {
-    dataService.completeSale(s);
-    setSales(dataService.getSales());
-    setProducts(dataService.getProducts());
-    setClients(dataService.getClients());
-  };
-
-  const handleCompletePurchase = (p: Purchase) => {
-    dataService.completePurchase(p);
-    setPurchases(dataService.getPurchases());
-    setProducts(dataService.getProducts());
-  };
-
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  if (!user) return <Login onLogin={handleLogin} />;
 
   return (
-    <div className="flex bg-slate-50 min-h-screen font-sans antialiased text-slate-900 relative">
+    <div className="flex bg-slate-50 min-h-screen relative font-sans antialiased text-slate-900">
       <Sidebar 
         user={user} 
         currentView={view} 
         setView={(v) => { setView(v); setIsSidebarOpen(false); }} 
-        onLogout={handleLogout}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout} 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
       />
-
-      <div className="flex-1 flex flex-col w-full min-w-0 lg:ml-64 bg-slate-50 min-h-screen">
-        <header className="lg:hidden flex items-center justify-between p-4 bg-slate-900 text-white sticky top-0 z-40 shadow-md">
-           <div className="flex items-center gap-3">
-             <button onClick={toggleSidebar} className="p-2 hover:bg-slate-800 rounded-lg transition-colors">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-             </button>
-             <h1 className="text-lg font-bold tracking-tight text-blue-400">NEXUS ERP</h1>
-           </div>
-           <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold overflow-hidden border border-slate-700 shadow-inner">
-             {user.imageUrl ? <img src={user.imageUrl} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+      
+      <div className="flex-1 flex flex-col lg:ml-64 min-h-screen w-full min-w-0">
+        <header className="lg:hidden flex items-center justify-between p-5 bg-slate-900 text-white sticky top-0 z-40 shadow-xl border-b border-white/5">
+           <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round"/></svg>
+           </button>
+           <h1 className="font-black text-blue-400 tracking-tighter text-lg uppercase">Nexus ERP</h1>
+           <div className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-slate-700 shadow-inner">
+             {user.imageUrl ? <img src={user.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold">{user.name.charAt(0)}</div>}
            </div>
         </header>
 
-        {/* CONTENEDOR PRINCIPAL CON SCROLL MEJORADO Y BARRA LATERAL VISIBLE EN MÓVILES */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar force-scrollbar">
           {view === 'DASHBOARD' && <Dashboard sales={sales} products={products} />}
-          {view === 'USERS' && <UserManagement users={users} onSave={handleSaveUser} onDelete={handleDeleteUser} />}
-          {view === 'PRODUCTS' && <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={handleDeleteProduct} />}
-          {view === 'CLIENTS' && <Clients clients={clients} onSaveClient={handleSaveClient} onDeleteClient={handleDeleteClient} />}
-          {view === 'NEW_SALE' && <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={handleCompleteSale} />}
-          {view === 'PURCHASES' && <Purchases products={products} providers={providers} purchases={purchases} onCompletePurchase={handleCompletePurchase} />}
+          {view === 'USERS' && <UserManagement users={users} currentUser={user} onSave={handleSaveUser} onDelete={(id) => { dataService.deleteUser(id); setUsers(dataService.getUsers()); }} />}
+          {view === 'PRODUCTS' && <Inventory products={products} onSaveProduct={(p) => { dataService.saveProduct(p); setProducts(dataService.getProducts()); }} onDeleteProduct={(id) => { dataService.deleteProduct(id); setProducts(dataService.getProducts()); }} />}
+          {view === 'CLIENTS' && <Clients clients={clients} onSaveClient={(c) => { dataService.saveClient(c); setClients(dataService.getClients()); }} onDeleteClient={(id) => { dataService.deleteClient(id); setClients(dataService.getClients()); }} />}
+          {view === 'NEW_SALE' && <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={(s) => { dataService.completeSale(s); setSales(dataService.getSales()); setProducts(dataService.getProducts()); }} />}
+          {view === 'PURCHASES' && <Purchases products={products} providers={providers} purchases={purchases} onCompletePurchase={(p) => { dataService.completePurchase(p); setPurchases(dataService.getPurchases()); setProducts(dataService.getProducts()); }} />}
+          
+          {view === 'PROVIDERS' && (
+             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+               <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">Directorio de Proveedores</h2>
+                    <p className="text-sm text-slate-500">Gestión de suministros y abastecimiento</p>
+                  </div>
+               </div>
+               <div className="overflow-x-auto custom-scrollbar force-scrollbar">
+                 <table className="w-full text-sm text-left">
+                   <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-[0.1em]">
+                     <tr>
+                       <th className="px-4 py-4">Nombre Comercial</th>
+                       <th className="px-4 py-4">Contacto Directo</th>
+                       <th className="px-4 py-4">Categoría</th>
+                     </tr>
+                   </thead>
+                   <tbody className="divide-y divide-slate-100">
+                     {providers.map(p => (
+                       <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                         <td className="px-4 py-4 font-black text-slate-900 uppercase tracking-tighter">{p.name}</td>
+                         <td className="px-4 py-4 text-slate-500 font-medium">{p.contactName}</td>
+                         <td className="px-4 py-4"><span className="px-2.5 py-1 bg-slate-100 rounded-lg text-[10px] font-black uppercase tracking-widest">{p.category}</span></td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+          )}
+
+          {view === 'SALES_HISTORY' && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+              <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase mb-6">Registro Histórico de Ventas</h2>
+              <div className="overflow-x-auto custom-scrollbar force-scrollbar">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-[0.1em]">
+                    <tr>
+                      <th className="px-4 py-4">Cod. Operación</th>
+                      <th className="px-4 py-4">Fecha Emisión</th>
+                      <th className="px-4 py-4">Cliente</th>
+                      <th className="px-4 py-4 text-right">Monto Final</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {sales.map(s => (
+                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-4 font-mono text-xs text-blue-600 font-bold">{s.id}</td>
+                        <td className="px-4 py-4 text-slate-500">{new Date(s.date).toLocaleDateString()}</td>
+                        <td className="px-4 py-4 font-bold uppercase tracking-tighter text-slate-900">{s.clientName}</td>
+                        <td className="px-4 py-4 text-right font-black text-slate-900 text-base">${s.total.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {sales.length === 0 && <tr><td colSpan={4} className="py-20 text-center text-slate-300 italic">No hay registros de ventas</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           
           {view === 'REPORTS' && (
-             <div className="space-y-6 pb-20 custom-scrollbar force-scrollbar"> 
-               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Reportes Ejecutivos</h2>
-                  <button className="w-full sm:w-auto bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-slate-200">
-                    Exportar PDF
-                  </button>
+             <div className="space-y-6 pb-24 custom-scrollbar force-scrollbar">
+               <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Reportes de Rendimiento</h2>
+                  <button className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Exportar Analíticas</button>
                </div>
-               
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
-                   <h3 className="text-lg font-bold mb-6 text-slate-800 uppercase tracking-widest text-xs">Ventas Semanales</h3>
-                   <div style={{ height: 300 }}>
-                     <ResponsiveContainer width="100%" height="100%">
-                       <BarChart data={[
-                         { name: 'Lun', value: 1200 }, { name: 'Mar', value: 1900 },
-                         { name: 'Mie', value: 1500 }, { name: 'Jue', value: 2100 },
-                         { name: 'Vie', value: 2400 }, { name: 'Sab', value: 1800 },
-                         { name: 'Dom', value: 1100 }
-                       ]}>
-                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 700}} />
-                         <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 700}} />
-                         <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                         <Bar dataKey="value" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                       </BarChart>
-                     </ResponsiveContainer>
-                   </div>
+                 <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm h-[450px] relative overflow-hidden">
+                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8">Volumen de Facturación</h3>
+                   <ResponsiveContainer width="100%" height="80%">
+                     <BarChart data={[
+                        {name: 'Ventas', v: sales.reduce((a,b)=>a+b.total,0)},
+                        {name: 'Costo', v: products.reduce((a,b)=>a+(b.cost*b.stock),0)}
+                     ]}>
+                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 800}} />
+                       <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 800}} />
+                       <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'}} />
+                       <Bar dataKey="v" fill="#3b82f6" radius={[10, 10, 0, 0]} barSize={50} />
+                     </BarChart>
+                   </ResponsiveContainer>
                  </div>
-                 
-                 <div className="bg-white p-10 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-                    <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                      <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                 <div className="bg-white p-12 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
+                    <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full mb-8 flex items-center justify-center shadow-inner ring-8 ring-blue-50/50">
+                       <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </div>
-                    <h4 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Métricas de Rendimiento</h4>
-                    <p className="text-slate-500 text-sm mt-3 max-w-xs leading-relaxed">Análisis profundo de rentabilidad por categoría y vendedor en tiempo real.</p>
+                    <h4 className="text-xl font-black text-slate-900 tracking-tighter uppercase mb-3">Balance de Operaciones</h4>
+                    <p className="text-slate-400 text-sm max-w-xs leading-relaxed font-medium uppercase tracking-tighter">Comparativa en tiempo real entre el valor de inventario y la facturación acumulada.</p>
                  </div>
                </div>
              </div>
