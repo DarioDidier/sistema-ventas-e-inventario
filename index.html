@@ -17,13 +17,6 @@
         }
         body { font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        input[type="date"] {
-            position: relative;
-            appearance: none;
-            -webkit-appearance: none;
-            min-height: 42px;
-        }
-
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -36,7 +29,21 @@
             transition: opacity 0.5s ease;
         }
     </style>
-    <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+    
+    <script>
+      // Configuración crítica para que es-module-shims funcione en entornos de archivos estáticos (.tsx)
+      window.esmsInitOptions = {
+        shimMode: true, // Forzar modo shim para ignorar cargador nativo y evitar errores MIME
+        handleMimeErrors: true,
+        reviver: (url, type, source) => {
+          // Si el servidor no reconoce .tsx, es-module-shims lo procesará como JS
+          return source;
+        }
+      };
+    </script>
+
+    <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js" crossorigin="anonymous"></script>
+
 <script type="importmap">
 {
   "imports": {
@@ -45,7 +52,11 @@
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
     "react-dom/": "https://esm.sh/react-dom@19.0.0/",
-    "react/": "https://esm.sh/react@19.0.0/"
+    "react/": "https://esm.sh/react@19.0.0/",
+    "./App.tsx": "./App.tsx",
+    "./types.ts": "./types.ts",
+    "./constants.tsx": "./constants.tsx",
+    "./services/dataService.ts": "./services/dataService.ts"
   }
 }
 </script>
@@ -54,19 +65,31 @@
     <div id="loading-overlay">
         <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         <p class="mt-4 text-slate-500 font-medium animate-pulse">Cargando Nexus ERP...</p>
+        <p id="debug-status" class="mt-2 text-[10px] text-slate-400 font-mono"></p>
     </div>
     <div id="root"></div>
+    
     <script>
-      // Fail-safe para ocultar el cargador si el script principal tarda demasiado o falla
+      // Monitoreo de errores globales para depuración en producción
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        console.error('Error Global:', msg, 'en', url, ':', lineNo);
+        var debug = document.getElementById('debug-status');
+        if (debug) debug.innerText = 'Error: ' + msg;
+        return false;
+      };
+
+      // Timeout de seguridad más largo para conexiones lentas
       setTimeout(function() {
         var overlay = document.getElementById('loading-overlay');
-        if (overlay) {
-          console.warn("Nexus ERP: Ocultando overlay por timeout de seguridad.");
+        if (overlay && overlay.style.opacity !== '0') {
+          console.warn("Nexus ERP: Ocultando overlay por timeout.");
           overlay.style.opacity = '0';
           setTimeout(function() { if (overlay.parentNode) overlay.remove(); }, 500);
         }
-      }, 8000);
+      }, 15000);
     </script>
-    <script type="module" src="./index.tsx"></script>
+    
+    <!-- El uso de module-shim es vital aquí -->
+    <script type="module-shim" src="./index.tsx" crossorigin="anonymous"></script>
 </body>
 </html>
