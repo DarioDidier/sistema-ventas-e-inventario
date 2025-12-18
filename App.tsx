@@ -45,7 +45,7 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
         role: Role.SELLER, 
         isActive: true, 
         imageUrl: '' 
-      });
+  });
     }
     setShowPassword(false);
     setShowModal(true);
@@ -255,19 +255,38 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
   );
 };
 
-const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider) => void, onDelete: (id: string) => void, isAdmin: boolean }> = ({ providers, onSave, onDelete, isAdmin }) => {
+// Added missing ProviderManagement component to fix compilation error
+const ProviderManagement: React.FC<{ 
+  providers: Provider[], 
+  onSave: (p: Provider) => void, 
+  onDelete: (id: string) => void, 
+  isAdmin: boolean 
+}> = ({ providers, onSave, onDelete, isAdmin }) => {
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<Provider | null>(null);
-  const [form, setForm] = useState<Partial<Provider>>({ name: '', contactName: '', email: '', phone: '', category: 'General', imageUrl: '' });
+  const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
+  const [form, setForm] = useState<Partial<Provider>>({
+    name: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    category: '',
+    imageUrl: ''
+  });
 
   const openModal = (p?: Provider) => {
-    if (!isAdmin) return;
     if (p) {
-      setEditing(p);
+      setEditingProvider(p);
       setForm(p);
     } else {
-      setEditing(null);
-      setForm({ name: '', contactName: '', email: '', phone: '', category: 'General', imageUrl: '' });
+      setEditingProvider(null);
+      setForm({
+        name: '',
+        contactName: '',
+        email: '',
+        phone: '',
+        category: '',
+        imageUrl: ''
+      });
     }
     setShowModal(true);
   };
@@ -283,104 +302,133 @@ const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider
     }
   };
 
-  const submit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...form as Provider, id: editing ? editing.id : `pr-${Date.now()}` });
+    onSave({
+      ...form as Provider,
+      id: editingProvider ? editingProvider.id : `pr-${Date.now()}`
+    });
     setShowModal(false);
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 shadow-sm">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="p-6 border-b flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Proveedores</h2>
-          <p className="text-sm text-slate-500">Administra los suministros de tu negocio</p>
+          <h2 className="text-xl font-bold">Gestión de Proveedores</h2>
+          <p className="text-sm text-slate-500">Directorio de abastecimiento</p>
         </div>
         {isAdmin && (
-          <button onClick={() => openModal()} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">+ Nuevo Proveedor</button>
+          <button 
+            onClick={() => openModal()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            + Nuevo Proveedor
+          </button>
         )}
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {providers.map(p => (
-          <div key={p.id} className="border border-slate-200 rounded-xl p-5 bg-white shadow-sm group hover:border-blue-300 transition-all">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="w-14 h-14 rounded-lg bg-slate-50 border border-slate-100 overflow-hidden flex-shrink-0">
-                {p.imageUrl ? <img src={p.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold">{p.name.charAt(0)}</div>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 truncate">{p.name}</h3>
-                <span className="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">{p.category}</span>
-              </div>
-            </div>
-            <div className="space-y-2 mb-4 text-xs text-slate-600">
-              <div className="flex items-center">
-                <svg className="w-3.5 h-3.5 mr-2 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                {p.contactName}
-              </div>
-              <div className="flex items-center">
-                <svg className="w-3.5 h-3.5 mr-2 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                {p.email}
-              </div>
-              <div className="flex items-center font-mono text-blue-600">
-                <svg className="w-3.5 h-3.5 mr-2 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .948.684l1.498 4.493a1 1 0 0 1-.502 1.21l-2.257 1.13a11.042 11.042 0 0 0 5.516 5.516l1.13-2.257a1 1 0 0 1 1.21-.502l4.493 1.498a1 1 0 0 1 .684.949V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                {p.phone}
-              </div>
-            </div>
-            {isAdmin && (
-              <div className="pt-3 border-t flex justify-end space-x-3">
-                <button onClick={() => openModal(p)} className="text-blue-600 text-xs font-bold hover:underline">Editar</button>
-                <button onClick={() => { if(window.confirm('¿Eliminar proveedor?')) onDelete(p.id) }} className="text-rose-600 text-xs font-bold hover:underline">Borrar</button>
-              </div>
-            )}
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
+            <tr>
+              <th className="px-6 py-4">Logo</th>
+              <th className="px-6 py-4">Empresa</th>
+              <th className="px-6 py-4">Contacto</th>
+              <th className="px-6 py-4">Categoría</th>
+              <th className="px-6 py-4">Email / Tel</th>
+              {isAdmin && <th className="px-6 py-4 text-right">Acciones</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {providers.map(p => (
+              <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold">
+                        {p.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-6 py-4 font-medium text-slate-900">{p.name}</td>
+                <td className="px-6 py-4 text-slate-600">{p.contactName}</td>
+                <td className="px-6 py-4">
+                  <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200">
+                    {p.category}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  <p className="text-xs text-slate-500">{p.email}</p>
+                  <p className="text-xs text-slate-400 font-mono">{p.phone}</p>
+                </td>
+                {isAdmin && (
+                  <td className="px-6 py-4 text-right">
+                    <button onClick={() => openModal(p)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">Editar</button>
+                    <button 
+                      onClick={() => { if(confirm('¿Eliminar proveedor?')) onDelete(p.id) }} 
+                      className="text-rose-600 hover:text-rose-800 font-medium"
+                    >
+                      Borrar
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in duration-200">
-            <h3 className="text-xl font-bold mb-6 text-slate-900">{editing ? 'Actualizar' : 'Registrar'} Proveedor</h3>
-            <form onSubmit={submit} className="space-y-4">
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 border-b bg-slate-50">
+              <h3 className="text-lg font-bold text-slate-900">{editingProvider ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h3>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="flex flex-col items-center mb-4">
-                <div className="w-24 h-24 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 overflow-hidden mb-1 relative group cursor-pointer hover:border-blue-400 transition-colors">
-                  {form.imageUrl ? <img src={form.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>}
+                <div className="w-24 h-24 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 overflow-hidden mb-2 relative group">
+                  {form.imageUrl ? (
+                    <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+                    </div>
+                  )}
                   <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Logo del Proveedor</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold">Logo de la empresa</p>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre de la Empresa</label>
-                  <input required placeholder="Ej: Global Solutions S.A." className="w-full p-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre de la Empresa</label>
+                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Persona de Contacto</label>
-                  <input required placeholder="Ej: Carlos Méndez" className="w-full p-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.contactName} onChange={e => setForm({...form, contactName: e.target.value})} />
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Contacto Principal</label>
+                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.contactName} onChange={e => setForm({...form, contactName: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Correo Corporativo</label>
-                  <input required type="email" placeholder="ventas@empresa.com" className="w-full p-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
+                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.category} onChange={e => setForm({...form, category: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Teléfono</label>
-                  <input required placeholder="Ej: +54 11 2345 6789" className="w-full p-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none font-mono" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                  <input type="email" required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Categoría</label>
-                  <select className="w-full p-2.5 border border-slate-300 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none appearance-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-                    <option value="General">Insumos Generales</option>
-                    <option value="Tecnología">Tecnología y Electrónica</option>
-                    <option value="Servicios">Servicios Profesionales</option>
-                    <option value="Limpieza">Artículos de Limpieza</option>
-                  </select>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label>
+                  <input required className="w-full p-2 border border-slate-300 rounded-lg bg-white text-slate-900" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
                 </div>
               </div>
-              <div className="flex justify-end space-x-2 pt-6 border-t mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl">Cerrar</button>
-                <button type="submit" className="px-8 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-[0.98]">
-                  {editing ? 'Guardar Cambios' : 'Registrar'}
+
+              <div className="flex justify-end space-x-3 pt-6 border-t">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-lg">Cancelar</button>
+                <button type="submit" className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg transition-all">
+                  {editingProvider ? 'Guardar Cambios' : 'Registrar Proveedor'}
                 </button>
               </div>
             </form>
@@ -463,7 +511,6 @@ const App: React.FC = () => {
 
   const handleSaveUser = (u: User) => {
     dataService.saveUser(u);
-    // Sincronizar usuario actual si se editó a sí mismo
     if (user && u.id === user.id) {
       const updatedUser = { ...u };
       delete updatedUser.password;
@@ -622,7 +669,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+    <div className="h-screen w-screen bg-slate-50 flex overflow-hidden">
       <Sidebar currentView={currentView} setView={setCurrentView} user={user} onLogout={handleLogout} />
       <main className="flex-1 ml-64 p-8 overflow-y-auto">
         <header className="mb-8 flex items-center justify-between">
