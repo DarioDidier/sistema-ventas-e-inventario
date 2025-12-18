@@ -2,9 +2,9 @@
 import { User, Role, Client, Provider, Product, Sale, Purchase } from '../types.ts';
 
 const INITIAL_USERS: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@nexus.com', username: 'admin', password: 'password', role: Role.ADMIN, isActive: true },
-  { id: '2', name: 'Juan Vendedor', email: 'juan@nexus.com', username: 'juan', password: 'password', role: Role.SELLER, isActive: true },
-  { id: '3', name: 'Maria Almacen', email: 'maria@nexus.com', username: 'maria', password: 'password', role: Role.WAREHOUSE, isActive: true },
+  { id: '1', name: 'Admin User', email: 'admin@nexus.com', username: 'admin', password: 'password', role: Role.ADMIN, isActive: true, securityQuestion: '¿Cuál es el nombre de tu primera mascota?', securityAnswer: 'rex' },
+  { id: '2', name: 'Juan Vendedor', email: 'juan@nexus.com', username: 'juan', password: 'password', role: Role.SELLER, isActive: true, securityQuestion: '¿Tu color favorito?', securityAnswer: 'azul' },
+  { id: '3', name: 'Maria Almacen', email: 'maria@nexus.com', username: 'maria', password: 'password', role: Role.WAREHOUSE, isActive: true, securityQuestion: '¿Ciudad de nacimiento?', securityAnswer: 'madrid' },
 ];
 
 const INITIAL_CLIENTS: Client[] = [
@@ -64,7 +64,8 @@ class DataService {
     const user = users.find(u => u.username === username && u.isActive);
     if (user && user.password && password !== user.password) return null;
     if (user) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+      const { password, ...userWithoutPass } = user;
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(userWithoutPass));
       return user;
     }
     return null;
@@ -74,12 +75,30 @@ class DataService {
     localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
   }
 
+  resetPassword(username: string, answer: string, newPassword: string): boolean {
+    const users = this.getUsers();
+    const idx = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+    if (idx === -1) return false;
+    
+    if (users[idx].securityAnswer?.toLowerCase() === answer.toLowerCase()) {
+      users[idx].password = newPassword;
+      this.setData(STORAGE_KEYS.USERS, users);
+      return true;
+    }
+    return false;
+  }
+
   // Common CRUDs
   getUsers(): User[] { return this.getData(STORAGE_KEYS.USERS, INITIAL_USERS); }
   saveUser(user: User): void {
     const users = this.getUsers();
     const idx = users.findIndex(u => u.id === user.id);
-    if (idx > -1) users[idx] = user; else users.push(user);
+    if (idx > -1) {
+      // Preserve existing fields if not sent
+      users[idx] = { ...users[idx], ...user };
+    } else {
+      users.push(user);
+    }
     this.setData(STORAGE_KEYS.USERS, users);
   }
   deleteUser(userId: string): void {

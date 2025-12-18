@@ -14,6 +14,8 @@ export interface User {
   role: Role;
   isActive: boolean;
   imageUrl?: string;
+  securityQuestion?: string;
+  securityAnswer?: string;
 }
 
 export interface Client {
