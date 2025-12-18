@@ -50,8 +50,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user, onLogout 
 
       <div className="p-4 border-t border-slate-800 bg-slate-900/50">
         <div className="flex items-center mb-4 px-2">
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white">
-            {user.name.charAt(0)}
+          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white overflow-hidden border border-slate-700">
+            {user.imageUrl ? (
+              <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user.name.charAt(0)
+            )}
           </div>
           <div className="ml-3 overflow-hidden">
             <p className="text-sm font-medium text-white truncate">{user.name}</p>

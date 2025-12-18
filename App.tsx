@@ -65,7 +65,7 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
 
   const onPreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowConfirm(true); // Abrir el popup de confirmación
+    setShowConfirm(true); 
   };
 
   const handleConfirmSave = () => {
@@ -468,6 +468,11 @@ const App: React.FC = () => {
 
   const handleSaveUser = (u: User) => {
     dataService.saveUser(u);
+    // Si el usuario guardado es el usuario actual, actualizamos la sesión local
+    if (user && u.id === user.id) {
+      setUser(u);
+      localStorage.setItem('nexus_current_user', JSON.stringify(u));
+    }
     loadSystemData();
   };
 
@@ -779,36 +784,42 @@ const App: React.FC = () => {
                 <div className="col-span-2 p-6 border border-slate-100 rounded-xl bg-slate-50">
                   <h4 className="font-bold text-slate-900 mb-4">Parámetros del Reporte de Ventas</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <div className="group">
+                    <div className="group relative">
                       <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Fecha de Inicio</label>
                       <div 
-                        className="relative cursor-pointer"
+                        className="relative cursor-pointer bg-white border border-slate-300 rounded-lg overflow-hidden transition-all hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 min-h-[44px] flex items-center"
                         onClick={handleDateContainerClick}
                       >
                         <input 
                           type="date" 
-                          className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none text-slate-900"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           value={reportStartDate}
                           onChange={(e) => setReportStartDate(e.target.value)}
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-blue-500 transition-colors">
+                        <div className="flex-1 px-3 text-slate-900 pointer-events-none">
+                          {reportStartDate ? new Date(reportStartDate + 'T00:00:00').toLocaleDateString() : 'Seleccionar'}
+                        </div>
+                        <div className="px-3 pointer-events-none text-slate-400 group-hover:text-blue-500 transition-colors">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
                       </div>
                     </div>
-                    <div className="group">
+                    <div className="group relative">
                       <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Fecha de Fin</label>
                       <div 
-                        className="relative cursor-pointer"
+                        className="relative cursor-pointer bg-white border border-slate-300 rounded-lg overflow-hidden transition-all hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 min-h-[44px] flex items-center"
                         onClick={handleDateContainerClick}
                       >
                         <input 
                           type="date" 
-                          className="w-full p-2.5 pr-10 border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none text-slate-900"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           value={reportEndDate}
                           onChange={(e) => setReportEndDate(e.target.value)}
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-blue-500 transition-colors">
+                        <div className="flex-1 px-3 text-slate-900 pointer-events-none">
+                          {reportEndDate ? new Date(reportEndDate + 'T00:00:00').toLocaleDateString() : 'Seleccionar'}
+                        </div>
+                        <div className="px-3 pointer-events-none text-slate-400 group-hover:text-blue-500 transition-colors">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
                       </div>
@@ -843,7 +854,7 @@ const App: React.FC = () => {
                 <div className="p-6 border border-slate-100 rounded-xl bg-white shadow-sm">
                   <h4 className="font-bold text-slate-900 mb-6">Tendencia de Ventas (Histórico)</h4>
                   <div style={{ width: '100%', height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <BarChart data={reportChartData}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
