@@ -77,7 +77,7 @@ const Purchases: React.FC<PurchasesProps> = ({ products, providers, purchases, o
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="p-6 border-b flex justify-between items-center">
           <div>
@@ -148,14 +148,17 @@ const Purchases: React.FC<PurchasesProps> = ({ products, providers, purchases, o
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {products.map(p => {
                       const pendingQty = pendingQuantities[p.id] || 1;
+                      const isLowStock = p.stock <= p.minStock;
                       return (
-                        <div key={p.id} className="flex flex-col p-5 border border-slate-200 rounded-3xl bg-white hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 transition-all group relative">
+                        <div key={p.id} className="flex flex-col p-5 border border-slate-200 rounded-3xl bg-white hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 transition-all group relative overflow-hidden">
+                          {isLowStock && <div className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-3 py-1 uppercase transform rotate-45 translate-x-3 translate-y-1">STOCK BAJO</div>}
                           <div className="flex-1 min-w-0 mb-4">
                             <p className="font-black text-sm text-slate-900 truncate uppercase tracking-tighter">{p.name}</p>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
                                 <span className="text-[9px] bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold font-mono uppercase tracking-tighter">{p.code}</span>
-                                <span className="text-[9px] text-slate-300 font-bold uppercase">Costo: ${p.cost}</span>
+                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${isLowStock ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>Stock Actual: {p.stock}</span>
                             </div>
+                            <p className="text-[9px] text-slate-300 font-bold uppercase mt-2 italic">Costo de última compra: ${p.cost.toFixed(2)}</p>
                           </div>
                           
                           <div className="flex items-center gap-3 mt-auto pt-4 border-t border-slate-50">
