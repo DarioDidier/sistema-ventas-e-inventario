@@ -17,21 +17,12 @@
         }
         body { font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        .date-input-wrapper {
+        /* Estilos base para inputs de fecha consistentes en navegadores */
+        input[type="date"] {
             position: relative;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            background: transparent;
-            bottom: 0;
-            color: transparent;
-            cursor: pointer;
-            height: auto;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: auto;
-            z-index: 20;
+            appearance: none;
+            -webkit-appearance: none;
+            min-height: 42px;
         }
     </style>
 <script type="importmap">
@@ -41,8 +32,8 @@
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react-dom/": "https://esm.sh/react-dom@19.0.0/",
+    "react/": "https://esm.sh/react@19.0.0/"
   }
 }
 </script>

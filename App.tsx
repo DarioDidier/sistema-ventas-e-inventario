@@ -339,14 +339,20 @@ const App: React.FC = () => {
                 <div className="p-6 border rounded-xl bg-slate-50">
                   <h4 className="font-bold mb-4">Ventas por Período</h4>
                   <div className="flex gap-4">
-                    <input type="date" className="p-2 border rounded w-1/2" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
-                    <input type="date" className="p-2 border rounded w-1/2" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
+                    <div className="w-1/2">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Desde</label>
+                      <input type="date" className="w-full p-2 border rounded bg-white text-slate-900 cursor-pointer" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
+                    </div>
+                    <div className="w-1/2">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Hasta</label>
+                      <input type="date" className="w-full p-2 border rounded bg-white text-slate-900 cursor-pointer" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
+                    </div>
                   </div>
-                  <button onClick={handleExportSalesPDF} className="mt-4 w-full bg-blue-600 text-white p-3 rounded-xl font-bold">Exportar Ventas PDF</button>
+                  <button onClick={handleExportSalesPDF} className="mt-6 w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-50 relative z-10">Exportar Ventas PDF</button>
                 </div>
                 <div className="p-6 border rounded-xl bg-slate-50 flex flex-col justify-between">
                    <h4 className="font-bold mb-2">Estado de Inventario</h4>
-                   <button onClick={handleExportInventoryPDF} className="bg-slate-800 text-white p-3 rounded-xl font-bold">Ver PDF de Inventario</button>
+                   <button onClick={handleExportInventoryPDF} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-colors shadow-lg shadow-slate-200 relative z-10">Ver PDF de Inventario</button>
                 </div>
               </div>
               <div className="h-[300px] w-full">
