@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User, Role, ViewType, Product, Client, Sale, Provider } from './types';
 import { dataService } from './services/dataService';
 import Sidebar from './components/Sidebar';
@@ -10,7 +10,7 @@ import Inventory from './pages/Inventory';
 import Clients from './pages/Clients';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-// Componente para gestión de usuarios (CRUD) con visibilidad de contraseña y confirmación personalizada
+// Componente para gestión de usuarios (CRUD)
 const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDelete: (id: string) => void }> = ({ users, onSave, onDelete }) => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -237,7 +237,6 @@ const UserManagement: React.FC<{ users: User[], onSave: (u: User) => void, onDel
         </div>
       )}
 
-      {/* Popup de Confirmación para "Aplicar Cambios" */}
       {showConfirm && (
         <div className="fixed inset-0 bg-slate-900/70 flex items-center justify-center z-[60] p-4 backdrop-blur-md">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
@@ -342,7 +341,7 @@ const ProviderManagement: React.FC<{ providers: Provider[], onSave: (p: Provider
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-md p-6 shadow-2xl animate-in zoom-in duration-200">
             <h3 className="text-xl font-bold mb-6 text-slate-900">{editing ? 'Actualizar' : 'Registrar'} Proveedor</h3>
             <form onSubmit={submit} className="space-y-4">
               <div className="flex flex-col items-center mb-4">
@@ -404,7 +403,6 @@ const App: React.FC = () => {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
-  // Estados para reportes
   const [reportStartDate, setReportStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -468,10 +466,11 @@ const App: React.FC = () => {
 
   const handleSaveUser = (u: User) => {
     dataService.saveUser(u);
-    // Si el usuario guardado es el usuario actual, actualizamos la sesión local
     if (user && u.id === user.id) {
-      setUser(u);
-      localStorage.setItem('nexus_current_user', JSON.stringify(u));
+      const updatedUser = { ...u };
+      delete updatedUser.password;
+      setUser(updatedUser);
+      localStorage.setItem('nexus_current_user', JSON.stringify(updatedUser));
     }
     loadSystemData();
   };
@@ -491,7 +490,6 @@ const App: React.FC = () => {
     loadSystemData();
   };
 
-  // Filtrado de ventas por rango seleccionado
   const filteredSalesForReport = useMemo(() => {
     return sales.filter(s => {
       const saleDate = s.date.split('T')[0];
@@ -499,22 +497,18 @@ const App: React.FC = () => {
     });
   }, [sales, reportStartDate, reportEndDate]);
 
-  // Funciones de Generación de Reportes
   const handleExportSalesPDF = () => {
     const win = window.open('', '_blank');
     if (!win) {
-      alert('Por favor, permite las ventanas emergentes para ver el reporte.');
+      alert('Por favor, permite las ventanas emergentes.');
       return;
     }
-    
     const total = filteredSalesForReport.reduce((acc, s) => acc + s.total, 0);
-    
     const salesGrouped = filteredSalesForReport.reduce((acc: any, s) => {
       const d = new Date(s.date).toLocaleDateString();
       acc[d] = (acc[d] || 0) + s.total;
       return acc;
     }, {});
-    
     const chartLabels = JSON.stringify(Object.keys(salesGrouped));
     const chartData = JSON.stringify(Object.values(salesGrouped));
 
@@ -528,90 +522,29 @@ const App: React.FC = () => {
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.5; }
             .header { border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
             .header h1 { margin: 0; color: #1e293b; }
-            .meta { font-size: 13px; color: #64748b; }
             .chart-container { margin: 30px 0; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #f1f5f9; padding: 12px; text-align: left; border: 1px solid #e2e8f0; font-size: 12px; text-transform: uppercase; color: #475569; }
-            td { padding: 12px; border: 1px solid #e2e8f0; font-size: 13px; }
-            .total-section { margin-top: 30px; display: flex; justify-content: flex-end; }
+            th { background: #f1f5f9; padding: 12px; text-align: left; border: 1px solid #e2e8f0; }
+            td { padding: 12px; border: 1px solid #e2e8f0; }
             .total-box { padding: 20px 40px; background: #1e293b; color: white; border-radius: 12px; text-align: right; }
-            .total-box h2 { margin: 0; color: #60a5fa; font-size: 24px; }
             @media print { .no-print { display: none; } }
           </style>
         </head>
         <body>
           <div class="header">
-            <div>
-              <h1>Reporte de Ventas</h1>
-              <p class="meta">Rango: ${reportStartDate} al ${reportEndDate}</p>
-            </div>
-            <div class="meta" style="text-align: right;">
-              <strong>NEXUS ERP SYSTEM</strong><br>
-              Generado: ${new Date().toLocaleString()}
-            </div>
+            <div><h1>Reporte de Ventas</h1><p>Rango: ${reportStartDate} al ${reportEndDate}</p></div>
+            <div style="text-align: right;"><strong>NEXUS ERP SYSTEM</strong><br>${new Date().toLocaleString()}</div>
           </div>
-
-          <div class="chart-container">
-            <h3 style="margin-top:0">Tendencia de Ventas en el Periodo</h3>
-            <canvas id="salesReportChart" height="100"></canvas>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${filteredSalesForReport.map(s => `
-                <tr>
-                  <td style="font-family: monospace;">${s.id}</td>
-                  <td>${new Date(s.date).toLocaleDateString()}</td>
-                  <td>${s.clientName}</td>
-                  <td style="font-weight: bold;">$${s.total.toFixed(2)}</td>
-                </tr>
-              `).join('')}
-              ${filteredSalesForReport.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding: 40px; color: #94a3b8;">No se encontraron registros en este rango de fechas.</td></tr>' : ''}
-            </tbody>
+          <div class="chart-container"><canvas id="salesReportChart" height="100"></canvas></div>
+          <table><thead><tr><th>ID</th><th>Fecha</th><th>Cliente</th><th>Monto</th></tr></thead>
+            <tbody>${filteredSalesForReport.map(s => `<tr><td>${s.id}</td><td>${new Date(s.date).toLocaleDateString()}</td><td>${s.clientName}</td><td>$${s.total.toFixed(2)}</td></tr>`).join('')}</tbody>
           </table>
-
-          <div class="total-section">
-            <div class="total-box">
-              <span style="text-transform: uppercase; font-size: 11px; letter-spacing: 1px; opacity: 0.7;">Venta Total del Periodo</span>
-              <h2>$${total.toFixed(2)}</h2>
-            </div>
-          </div>
-
-          <button onclick="window.print()" class="no-print" style="margin-top: 40px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Imprimir Reporte</button>
-
+          <div style="display:flex; justify-content:flex-end; margin-top:30px;"><div class="total-box"><h2>$${total.toFixed(2)}</h2></div></div>
+          <button onclick="window.print()" class="no-print" style="margin-top:20px; padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; cursor:pointer;">Imprimir</button>
           <script>
-            const ctx = document.getElementById('salesReportChart').getContext('2d');
-            new Chart(ctx, {
+            new Chart(document.getElementById('salesReportChart'), {
               type: 'line',
-              data: {
-                labels: ${chartLabels},
-                datasets: [{
-                  label: 'Ventas ($)',
-                  data: ${chartData},
-                  borderColor: '#3b82f6',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  fill: true,
-                  tension: 0.3,
-                  borderWidth: 3,
-                  pointBackgroundColor: '#3b82f6'
-                }]
-              },
-              options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                  y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                  x: { grid: { display: false } }
-                }
-              }
+              data: { labels: ${chartLabels}, datasets: [{ label: 'Ventas ($)', data: ${chartData}, borderColor: '#3b82f6', fill: true }] }
             });
           </script>
         </body>
@@ -623,92 +556,16 @@ const App: React.FC = () => {
 
   const handleGenerateInventoryStatus = () => {
     const win = window.open('', '_blank');
-    if (!win) {
-      alert('Por favor, permite las ventanas emergentes para ver el reporte.');
-      return;
-    }
-    
+    if (!win) return;
     const criticos = products.filter(p => p.stock <= p.minStock);
-    const valorInventario = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
-    
     const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Estado de Inventario - Nexus ERP</title>
-          <style>
-            body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
-            .header { border-bottom: 3px solid #ef4444; padding-bottom: 10px; margin-bottom: 20px; }
-            .summary { display: grid; grid-template-cols: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-            .card { padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; }
-            .alert-card { border-color: #fecaca; background: #fef2f2; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #f1f5f9; padding: 10px; text-align: left; border: 1px solid #e2e8f0; font-size: 12px; }
-            td { padding: 10px; border: 1px solid #e2e8f0; font-size: 13px; }
-            .critical { color: #dc2626; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Estado Actual de Inventario</h1>
-            <p>Generado: ${new Date().toLocaleString()}</p>
-          </div>
-          <div class="summary">
-            <div class="card">
-              <h3 style="margin-top:0">Resumen de Almacén</h3>
-              <p>Total SKUs Activos: <strong>${products.length}</strong></p>
-              <p>Valorización de Stock: <strong>$${valorInventario.toFixed(2)}</strong></p>
-            </div>
-            <div class="card alert-card">
-              <h3 style="color:#dc2626; margin-top:0">Alertas Críticas</h3>
-              <p>Productos Bajo Mínimo: <strong>${criticos.length}</strong></p>
-            </div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Nombre del Producto</th>
-                <th>Stock</th>
-                <th>Mínimo</th>
-                <th>P. Venta</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${products.map(p => `
-                <tr>
-                  <td>${p.code}</td>
-                  <td>${p.name}</td>
-                  <td>${p.stock}</td>
-                  <td>${p.minStock}</td>
-                  <td>$${p.price.toFixed(2)}</td>
-                  <td class="${p.stock <= p.minStock ? 'critical' : ''}">${p.stock <= p.minStock ? 'REPONER URGENTE' : 'ÓPTIMO'}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <script>window.print();</script>
-        </body>
-      </html>
+      <html><head><title>Estado de Inventario</title><style>body{font-family:sans-serif;padding:40px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f4f4f4}</style></head>
+      <body><h1>Inventario Actual</h1><table><thead><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Estado</th></tr></thead>
+      <tbody>${products.map(p => `<tr><td>${p.code}</td><td>${p.name}</td><td>${p.stock}</td><td>${p.stock <= p.minStock ? 'BAJO' : 'OK'}</td></tr>`).join('')}</tbody>
+      </table><script>window.print()</script></body></html>
     `;
     win.document.write(html);
     win.document.close();
-  };
-
-  const handleDateContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const input = e.currentTarget.querySelector('input');
-    if (input) {
-      if ('showPicker' in input) {
-        try {
-          (input as any).showPicker();
-        } catch (err) {
-          input.focus();
-        }
-      } else {
-        input.focus();
-      }
-    }
   };
 
   if (!user) {
@@ -717,205 +574,76 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'DASHBOARD':
-        return <Dashboard sales={sales} products={products} />;
-      case 'NEW_SALE':
-        return <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={onCompleteSale} />;
-      case 'PRODUCTS':
-        return <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={handleDeleteProduct} />;
-      case 'CLIENTS':
-        return <Clients clients={clients} onSaveClient={handleSaveClient} onDeleteClient={handleDeleteClient} />;
-      case 'SALES_HISTORY':
-        return (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <h2 className="text-xl font-bold mb-4 text-slate-800">Historial de Ventas</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  <tr className="border-b">
-                    <th className="px-4 py-3">ID</th>
-                    <th className="px-4 py-3">Fecha</th>
-                    <th className="px-4 py-3">Cliente</th>
-                    <th className="px-4 py-3">Artículos</th>
-                    <th className="px-4 py-3">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y text-slate-700">
-                  {sales.length === 0 ? (
-                    <tr><td colSpan={5} className="py-12 text-center text-slate-400 italic">No hay transacciones registradas</td></tr>
-                  ) : sales.map(s => (
-                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 font-mono text-xs">{s.id}</td>
-                      <td className="px-4 py-3">{new Date(s.date).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 font-medium">{s.clientName}</td>
-                      <td className="px-4 py-3">{s.items.length}</td>
-                      <td className="px-4 py-3 text-emerald-600 font-bold">${s.total.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'USERS':
-        return user.role === Role.ADMIN ? (
-          <UserManagement users={users} onSave={handleSaveUser} onDelete={handleDeleteUser} />
-        ) : (
-          <div className="p-12 text-center bg-white rounded-xl border border-dashed border-slate-300">
-             <p className="text-slate-500 font-medium">No tiene permisos de administrador.</p>
-          </div>
-        );
-      case 'PROVIDERS':
-        return <ProviderManagement providers={providers} onSave={handleSaveProvider} onDelete={handleDeleteProvider} isAdmin={user.role === Role.ADMIN} />;
+      case 'DASHBOARD': return <Dashboard sales={sales} products={products} />;
+      case 'NEW_SALE': return <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={onCompleteSale} />;
+      case 'PRODUCTS': return <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={handleDeleteProduct} />;
+      case 'CLIENTS': return <Clients clients={clients} onSaveClient={handleSaveClient} onDeleteClient={handleDeleteClient} />;
+      case 'SALES_HISTORY': return (
+        <div className="bg-white rounded-xl border p-6 shadow-sm"><h2 className="text-xl font-bold mb-4">Historial de Ventas</h2><div className="overflow-x-auto">
+          <table className="w-full text-sm text-left"><thead className="bg-slate-50 uppercase text-slate-500 font-bold"><tr className="border-b"><th className="px-4 py-3">ID</th><th className="px-4 py-3">Fecha</th><th className="px-4 py-3">Cliente</th><th className="px-4 py-3">Total</th></tr></thead>
+          <tbody className="divide-y">{sales.map(s => (<tr key={s.id} className="hover:bg-slate-50"><td className="px-4 py-3 font-mono">{s.id}</td><td className="px-4 py-3">{new Date(s.date).toLocaleDateString()}</td><td className="px-4 py-3">{s.clientName}</td><td className="px-4 py-3 font-bold text-emerald-600">${s.total.toFixed(2)}</td></tr>))}</tbody></table>
+        </div></div>
+      );
+      case 'USERS': return user.role === Role.ADMIN ? <UserManagement users={users} onSave={handleSaveUser} onDelete={handleDeleteUser} /> : <div className="p-12 text-center bg-white rounded-xl border">No tiene permisos de administrador.</div>;
+      case 'PROVIDERS': return <ProviderManagement providers={providers} onSave={handleSaveProvider} onDelete={handleDeleteProvider} isAdmin={user.role === Role.ADMIN} />;
       case 'REPORTS':
-        const salesByDayData = sales.reduce((acc: any, sale) => {
-          const date = new Date(sale.date).toLocaleDateString('es-ES', { weekday: 'short' });
-          acc[date] = (acc[date] || 0) + sale.total;
-          return acc;
-        }, {});
-        const reportChartData = Object.keys(salesByDayData).map(key => ({ name: key, total: salesByDayData[key] }));
-
+        const reportChartData = Object.entries(sales.reduce((acc:any, s) => { const d = new Date(s.date).toLocaleDateString('es-ES', {weekday:'short'}); acc[d] = (acc[d] || 0) + s.total; return acc;}, {})).map(([name, total]) => ({name, total}));
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-6 text-slate-800">Generador de Reportes Analíticos</h2>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div className="col-span-2 p-6 border border-slate-100 rounded-xl bg-slate-50">
-                  <h4 className="font-bold text-slate-900 mb-4">Parámetros del Reporte de Ventas</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <div className="group relative">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Fecha de Inicio</label>
-                      <div 
-                        className="relative cursor-pointer bg-white border border-slate-300 rounded-lg overflow-hidden transition-all hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 min-h-[44px] flex items-center"
-                        onClick={handleDateContainerClick}
-                      >
-                        <input 
-                          type="date" 
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          value={reportStartDate}
-                          onChange={(e) => setReportStartDate(e.target.value)}
-                        />
-                        <div className="flex-1 px-3 text-slate-900 pointer-events-none">
-                          {reportStartDate ? new Date(reportStartDate + 'T00:00:00').toLocaleDateString() : 'Seleccionar'}
-                        </div>
-                        <div className="px-3 pointer-events-none text-slate-400 group-hover:text-blue-500 transition-colors">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
-                      </div>
+            <div className="bg-white rounded-xl border p-6 shadow-sm">
+              <h2 className="text-xl font-bold mb-6">Reportes</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="p-6 border rounded-xl bg-slate-50">
+                  <h4 className="font-bold mb-4">Reporte de Ventas</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative h-[44px] bg-white border rounded-lg flex items-center px-3 cursor-pointer overflow-hidden hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500">
+                      <input type="date" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" value={reportStartDate} onChange={e => setReportStartDate(e.target.value)} />
+                      <span className="flex-1 text-slate-900 pointer-events-none text-sm">{reportStartDate ? new Date(reportStartDate+'T00:00:00').toLocaleDateString() : 'Inicio'}</span>
+                      <svg className="w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-                    <div className="group relative">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Fecha de Fin</label>
-                      <div 
-                        className="relative cursor-pointer bg-white border border-slate-300 rounded-lg overflow-hidden transition-all hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 min-h-[44px] flex items-center"
-                        onClick={handleDateContainerClick}
-                      >
-                        <input 
-                          type="date" 
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          value={reportEndDate}
-                          onChange={(e) => setReportEndDate(e.target.value)}
-                        />
-                        <div className="flex-1 px-3 text-slate-900 pointer-events-none">
-                          {reportEndDate ? new Date(reportEndDate + 'T00:00:00').toLocaleDateString() : 'Seleccionar'}
-                        </div>
-                        <div className="px-3 pointer-events-none text-slate-400 group-hover:text-blue-500 transition-colors">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                        </div>
-                      </div>
+                    <div className="relative h-[44px] bg-white border rounded-lg flex items-center px-3 cursor-pointer overflow-hidden hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500">
+                      <input type="date" className="absolute inset-0 opacity-0 z-10 w-full h-full cursor-pointer" value={reportEndDate} onChange={e => setReportEndDate(e.target.value)} />
+                      <span className="flex-1 text-slate-900 pointer-events-none text-sm">{reportEndDate ? new Date(reportEndDate+'T00:00:00').toLocaleDateString() : 'Fin'}</span>
+                      <svg className="w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                   </div>
-                  <div className="mt-6 flex justify-end">
-                    <button 
-                      onClick={handleExportSalesPDF}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Generar Reporte de Ventas con Gráfico
-                    </button>
-                  </div>
+                  <button onClick={handleExportSalesPDF} className="mt-4 w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition-all">Exportar PDF</button>
                 </div>
-
-                <div className="p-6 border border-slate-100 rounded-xl bg-slate-50 flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-bold text-slate-900 mb-2">Estado del Inventario</h4>
-                    <p className="text-xs text-slate-500 mb-4">Obtén una lista completa de existencias, valorización y alertas críticas de reposición.</p>
-                  </div>
-                  <button 
-                    onClick={handleGenerateInventoryStatus}
-                    className="w-full bg-slate-800 text-white px-4 py-3 rounded-xl font-bold hover:bg-slate-900 shadow-lg transition-all"
-                  >
-                    Generar PDF de Inventario
-                  </button>
+                <div className="p-6 border rounded-xl bg-slate-50 flex flex-col justify-between">
+                  <h4 className="font-bold mb-2">Inventario</h4>
+                  <p className="text-xs text-slate-500 mb-4">Reporte completo de existencias.</p>
+                  <button onClick={handleGenerateInventoryStatus} className="bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-slate-900 transition-all">Ver Inventario</button>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 border border-slate-100 rounded-xl bg-white shadow-sm">
-                  <h4 className="font-bold text-slate-900 mb-6">Tendencia de Ventas (Histórico)</h4>
-                  <div style={{ width: '100%', height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                      <BarChart data={reportChartData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                        <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} cursor={{ fill: '#f1f5f9' }} />
-                        <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                          {reportChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#60a5fa'} />)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="p-6 border border-slate-100 rounded-xl bg-white shadow-sm">
-                   <h4 className="font-bold text-slate-900 mb-6">Resumen del Periodo Seleccionado</h4>
-                   <div className="space-y-4">
-                      <div className="flex justify-between items-center text-sm py-3 border-b border-slate-100">
-                        <span className="text-slate-600">Ventas Realizadas:</span>
-                        <span className="font-bold text-slate-900">{filteredSalesForReport.length} facturas</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm py-3 border-b border-slate-100">
-                        <span className="text-slate-600">Ticket Promedio:</span>
-                        <span className="font-bold text-slate-900">
-                          ${filteredSalesForReport.length > 0 ? (filteredSalesForReport.reduce((acc, s) => acc + s.total, 0) / filteredSalesForReport.length).toFixed(2) : '0.00'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm py-3 border-b border-slate-100">
-                        <span className="text-slate-600">Monto Acumulado:</span>
-                        <span className="font-bold text-blue-600 font-bold text-lg">
-                          ${filteredSalesForReport.reduce((acc, s) => acc + s.total, 0).toLocaleString()}
-                        </span>
-                      </div>
-                   </div>
-                </div>
+              <div className="h-[300px] w-full bg-white border rounded-xl p-4">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <BarChart data={reportChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{fill: '#f1f5f9'}} />
+                    <Bar dataKey="total" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
         );
-      default:
-        return <div>Vista no encontrada</div>;
+      default: return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-blue-100">
+    <div className="min-h-screen bg-slate-50 flex">
       <Sidebar currentView={currentView} setView={setCurrentView} user={user} onLogout={handleLogout} />
-      <main className="ml-64 p-8 transition-all duration-300">
+      <main className="flex-1 ml-64 p-8">
         <header className="mb-8 flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span className="text-slate-300">/</span>
-            <span className="font-semibold text-slate-900 capitalize tracking-tight">{currentView.toLowerCase().replace('_', ' ')}</span>
-          </div>
-          <div className="text-sm font-medium text-slate-600 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-sm flex items-center">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></div>
+          <h1 className="text-sm font-bold uppercase tracking-widest text-slate-400">{currentView.replace('_', ' ')}</h1>
+          <div className="text-xs text-slate-500 bg-white px-4 py-2 rounded-full border shadow-sm">
             {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </header>
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          {renderContent()}
-        </div>
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">{renderContent()}</div>
       </main>
     </div>
   );
