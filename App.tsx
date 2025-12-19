@@ -47,14 +47,23 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
 
   const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingUser) setShowConfirmSave(true); else executeSave();
+    if (editingUser) {
+      setShowConfirmSave(true);
+    } else {
+      executeSave();
+    }
   };
 
   const executeSave = () => {
-    const userData = { ...form as User, id: editingUser ? editingUser.id : `u-${Date.now()}` };
+    // Ensure ID is passed for edits
+    const userData = { 
+      ...form as User, 
+      id: editingUser ? editingUser.id : `u-${Date.now()}` 
+    };
     onSave(userData);
     setShowModal(false);
     setShowConfirmSave(false);
+    setEditingUser(null);
   };
 
   return (
@@ -221,7 +230,7 @@ const App: React.FC = () => {
       setProviders(dataService.getProviders());
       setPurchases(dataService.getPurchases());
     }
-  }, [user, view]); // Reload data when view changes to ensure sync
+  }, [user, view]);
 
   const handleLogin = (u: string, p?: string) => {
     const loggedUser = dataService.login(u, p);
@@ -313,6 +322,11 @@ const App: React.FC = () => {
     setShowProviderModal(false);
   };
 
+  const handleSaveUser = (u: User) => {
+    dataService.saveUser(u);
+    setUsers(dataService.getUsers());
+  };
+
   if (!user) return <Login onLogin={handleLogin} />;
 
   return (
@@ -328,7 +342,7 @@ const App: React.FC = () => {
 
         <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar force-scrollbar animate-in fade-in duration-500">
           {view === 'DASHBOARD' && <Dashboard sales={sales} products={products} />}
-          {view === 'USERS' && <UserManagement users={users} currentUser={user} onSave={(u) => { dataService.saveUser(u); setUsers(dataService.getUsers()); }} onDelete={(id) => { dataService.deleteUser(id); setUsers(dataService.getUsers()); }} />}
+          {view === 'USERS' && <UserManagement users={users} currentUser={user} onSave={handleSaveUser} onDelete={(id) => { dataService.deleteUser(id); setUsers(dataService.getUsers()); }} />}
           {view === 'PRODUCTS' && <Inventory products={products} onSaveProduct={(p) => { dataService.saveProduct(p); setProducts(dataService.getProducts()); }} onDeleteProduct={(id) => { dataService.deleteProduct(id); setProducts(dataService.getProducts()); }} />}
           {view === 'CLIENTS' && <Clients clients={clients} onSaveClient={(c) => { dataService.saveClient(c); setClients(dataService.getClients()); }} onDeleteClient={(id) => { dataService.deleteClient(id); setClients(dataService.getClients()); }} />}
           {view === 'NEW_SALE' && <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={(s) => { dataService.completeSale(s); setSales(dataService.getSales()); setProducts(dataService.getProducts()); }} />}
