@@ -2,6 +2,15 @@
 import React from 'react';
 
 export const ICONS = {
+  Logo: ({ className = "w-8 h-8" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2L35.5885 11V29L20 38L4.41154 29V11L20 2Z" stroke="#0ea5e9" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M20 11V20M20 20L35.5885 11M20 20L4.41154 11" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M4.41154 29L20 20L35.5885 29" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="9" cy="27" r="2.5" fill="#0ea5e9" />
+      <path d="M9 27L20 34" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  ),
   Dashboard: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
   ),

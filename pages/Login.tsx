@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { dataService } from '../services/dataService.ts';
+import { ICONS } from '../constants.tsx';
 
 interface LoginProps {
   onLogin: (username: string, password?: string) => void;
@@ -11,7 +12,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('password');
   const [showPassword, setShowPassword] = useState(false);
   
-  // Forgot Password Flow
   const [mode, setMode] = useState<'LOGIN' | 'FORGOT' | 'RESET'>('LOGIN');
   const [resetUser, setResetUser] = useState('');
   const [securityQuestion, setSecurityQuestion] = useState('');
@@ -53,9 +53,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4 font-sans animate-in fade-in duration-300">
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-          <div className="bg-slate-900 p-8 text-center">
-            <h1 className="text-3xl font-black text-blue-500 tracking-tight">RECUPERACIÓN</h1>
-            <p className="text-slate-400 text-[10px] mt-2 uppercase tracking-[0.3em] font-black">Nexus Security Protocol</p>
+          <div className="bg-slate-900 p-8 text-center flex flex-col items-center">
+            <ICONS.Logo className="w-12 h-12 mb-3" />
+            <h1 className="text-2xl font-semibold text-white tracking-tight">Recuperación Nexstock</h1>
+            <p className="text-slate-400 text-[10px] mt-2 uppercase tracking-[0.3em] font-black">Security Protocol</p>
           </div>
           
           <div className="p-8 space-y-6">
@@ -108,8 +109,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4 font-sans animate-in fade-in duration-500">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-        <div className="bg-slate-900 p-10 text-center">
-          <h1 className="text-4xl font-black text-blue-500 tracking-tighter italic">NEXUS ERP</h1>
+        <div className="bg-slate-900 p-10 text-center flex flex-col items-center">
+          <ICONS.Logo className="w-16 h-16 mb-4" />
+          <h1 className="text-4xl font-semibold text-white tracking-tight">Nexstock</h1>
           <p className="text-slate-400 text-[10px] mt-2 uppercase tracking-[0.4em] font-black">Enterprise Resource Management</p>
         </div>
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
@@ -167,7 +169,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
           
           <div className="pt-6 border-t border-slate-100 text-center">
-            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Versión Enterprise v2.5</p>
+            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Nexstock Enterprise v3.0</p>
           </div>
         </form>
       </div>

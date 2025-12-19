@@ -47,6 +47,7 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
   const handleCSVImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
@@ -66,23 +67,24 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
       for (let i = 1; i < rows.length; i++) {
         const columns = rows[i].split(delimiter).map(col => col.trim().replace(/^["'](.+)["']$/, '$1'));
         
-        if (columns.length >= 6) {
+        if (columns.length >= 4) {
           try {
-            const price = parseFloat(columns[2].replace(',', '.'));
-            const cost = parseFloat(columns[3].replace(',', '.'));
-            const stock = parseInt(columns[4]);
-            const minStock = parseInt(columns[5]);
-
-            if (isNaN(price) || isNaN(cost) || isNaN(stock)) throw new Error("Invalid numbers");
+            // Estructura mínima esperada: Codigo, Nombre, Precio, Costo, Stock, MinStock
+            const code = columns[0] || `SKU-${Date.now()}-${i}`;
+            const name = columns[1] || "Producto Importado";
+            const price = parseFloat(columns[2].replace(',', '.')) || 0;
+            const cost = parseFloat(columns[3].replace(',', '.')) || 0;
+            const stock = parseInt(columns[4]) || 0;
+            const minStock = parseInt(columns[5]) || 5;
 
             onSaveProduct({
               id: `p-csv-${Date.now()}-${i}`,
-              code: columns[0] || `SKU-${Date.now()}-${i}`,
-              name: columns[1] || "Producto sin nombre",
-              price: price,
-              cost: cost,
-              stock: stock,
-              minStock: isNaN(minStock) ? 5 : minStock,
+              code,
+              name,
+              price,
+              cost,
+              stock,
+              minStock,
               description: 'Importado vía CSV',
               categoryId: 'general'
             });
@@ -103,6 +105,7 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
       setShowImportModal(false);
       e.target.value = '';
     };
+    reader.onerror = () => setImportResult({ success: false, imported: 0, errors: 1 });
     reader.readAsText(file);
   };
 
@@ -172,19 +175,19 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" strokeLinecap="round" strokeLinejoin="round"/></svg>
                </div>
                <div className="space-y-2">
-                 <p className="text-slate-700 font-bold text-sm">Formato requerido:</p>
-                 <p className="text-slate-500 text-xs font-mono bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200">SKU, Nombre, Precio, Costo, Stock, MinStock</p>
+                 <p className="text-slate-700 font-bold text-sm">Selecciona tu archivo CSV:</p>
+                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Formato: SKU, Nombre, Precio, Costo, Stock, MinStock</p>
                </div>
-               <input type="file" accept=".csv" onChange={handleCSVImport} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+               <input type="file" accept=".csv" onChange={handleCSVImport} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
                <button onClick={() => setShowImportModal(false)} className="w-full py-4 text-slate-400 font-black text-xs uppercase tracking-widest">Cancelar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Import Result Modal */}
+      {/* Import Result Modal (The requested popup) */}
       {importResult && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl border border-white/20 animate-in zoom-in duration-300">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ${importResult.success ? 'bg-emerald-50 text-emerald-500 ring-emerald-50/50' : 'bg-rose-50 text-rose-500 ring-rose-50/50'}`}>
               {importResult.success ? (
@@ -194,15 +197,17 @@ const Inventory: React.FC<InventoryProps> = ({ products, onSaveProduct, onDelete
               )}
             </div>
             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">
-              {importResult.success ? 'Proceso Completado' : 'Error en Proceso'}
+              {importResult.success ? 'Importación Exitosa' : 'Error de Importación'}
             </h3>
-            <div className="space-y-2 mb-8">
-              <p className="text-slate-500 text-sm font-medium">Se importaron <span className="text-emerald-600 font-black">{importResult.imported}</span> artículos correctamente.</p>
+            <div className="space-y-3 mb-8">
+              <p className="text-slate-500 text-sm font-medium">Se procesaron <span className="text-emerald-600 font-black">{importResult.imported}</span> artículos correctamente.</p>
               {importResult.errors > 0 && (
-                <p className="text-rose-400 text-[10px] font-black uppercase tracking-widest">Se detectaron {importResult.errors} filas con errores.</p>
+                <div className="p-3 bg-rose-50 rounded-xl border border-rose-100">
+                  <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest">Se detectaron {importResult.errors} registros con errores de formato.</p>
+                </div>
               )}
             </div>
-            <button onClick={() => setImportResult(null)} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95">Entendido</button>
+            <button onClick={() => setImportResult(null)} className="w-full bg-slate-900 text-white py-5 rounded-3xl font-black uppercase text-xs tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl active:scale-95">Continuar</button>
           </div>
         </div>
       )}

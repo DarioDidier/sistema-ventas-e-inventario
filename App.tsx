@@ -10,6 +10,7 @@ import Inventory from './pages/Inventory.tsx';
 import Clients from './pages/Clients.tsx';
 import Purchases from './pages/Purchases.tsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ICONS } from './constants.tsx';
 
 /**
  * UserManagement Sub-component
@@ -55,15 +56,18 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
   };
 
   const executeSave = () => {
-    // Ensure ID is passed for edits
-    const userData = { 
+    const targetId = editingUser ? editingUser.id : `u-${Date.now()}`;
+    const userData: User = { 
       ...form as User, 
-      id: editingUser ? editingUser.id : `u-${Date.now()}` 
+      id: targetId 
     };
+    
     onSave(userData);
+    
     setShowModal(false);
     setShowConfirmSave(false);
     setEditingUser(null);
+    setForm({ name: '', email: '', username: '', password: '', role: Role.SELLER, isActive: true, imageUrl: '', securityQuestion: '', securityAnswer: '' });
   };
 
   return (
@@ -104,7 +108,7 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <button onClick={() => openModal(u)} className="text-blue-600 hover:text-blue-800 font-black mr-4 uppercase text-[11px] tracking-widest">Editar</button>
-                  {u.id !== currentUser.id && <button onClick={() => onDelete(u.id)} className="text-rose-400 hover:text-rose-600 font-black uppercase text-[11px] tracking-widest">Borrar</button>}
+                  {u.id !== currentUser.id && <button onClick={() => { if(confirm('¿Borrar este usuario permanentemente?')) onDelete(u.id); }} className="text-rose-400 hover:text-rose-600 font-black uppercase text-[11px] tracking-widest">Borrar</button>}
                 </td>
               </tr>
             ))}
@@ -178,17 +182,21 @@ const UserManagement: React.FC<{ users: User[], currentUser: User, onSave: (u: U
                 
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest">Cancelar</button>
-                  <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all">Guardar Perfil</button>
+                  <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all">Siguiente Paso</button>
                 </div>
               </form>
             ) : (
               <div className="p-10 text-center space-y-6">
-                <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto shadow-inner"><svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-                <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">¿Confirmar Actualización?</h4>
-                <p className="text-slate-500 text-sm font-medium">Se aplicarán los cambios al perfil de <span className="text-slate-900 font-black">{form.name}</span>. El acceso se actualizará de inmediato.</p>
-                <div className="flex gap-3 pt-6">
-                  <button onClick={() => setShowConfirmSave(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest">Regresar</button>
-                  <button onClick={executeSave} className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all">Confirmar Cambios</button>
+                <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto shadow-inner ring-8 ring-amber-50/50">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div>
+                  <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">¿Confirmar Actualización?</h4>
+                  <p className="text-slate-500 text-sm font-medium mt-2">Estás a punto de aplicar cambios en el perfil de <span className="text-slate-900 font-black">{form.name}</span>. Esta acción no se puede deshacer de forma masiva.</p>
+                </div>
+                <div className="flex gap-3 pt-6 border-t border-slate-100">
+                  <button onClick={() => setShowConfirmSave(false)} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-600">Volver</button>
+                  <button onClick={executeSave} className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95">Confirmar Cambios</button>
                 </div>
               </div>
             )}
@@ -241,7 +249,7 @@ const App: React.FC = () => {
 
   const handleExportCSV = () => {
     const csvRows = [
-      ["Reporte de Analiticas Nexus ERP"],
+      ["Reporte de Analiticas Nexstock"],
       ["Fecha", new Date().toLocaleString()],
       [],
       ["RESUMEN"],
@@ -256,7 +264,7 @@ const App: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Reporte_Nexus_${Date.now()}.csv`;
+    link.download = `Reporte_Nexstock_${Date.now()}.csv`;
     link.click();
     setShowExportModal(false);
   };
@@ -268,7 +276,7 @@ const App: React.FC = () => {
     const htmlContent = `
       <html>
         <head>
-          <title>Reporte Ejecutivo Nexus ERP</title>
+          <title>Reporte Ejecutivo Nexstock</title>
           <style>
             body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #333; }
             h1 { color: #2563eb; text-transform: uppercase; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
@@ -281,7 +289,7 @@ const App: React.FC = () => {
           </style>
         </head>
         <body>
-          <h1>Reporte Ejecutivo Nexus ERP</h1>
+          <h1>Reporte Ejecutivo Nexstock</h1>
           <p>Fecha de emisión: ${new Date().toLocaleString()}</p>
           <div class="summary">
             <div class="card">
@@ -298,7 +306,7 @@ const App: React.FC = () => {
             <thead><tr><th>ID OPERACION</th><th>FECHA</th><th>CLIENTE</th><th>TOTAL</th></tr></thead>
             <tbody>${sales.map(s => `<tr><td>${s.id}</td><td>${new Date(s.date).toLocaleDateString()}</td><td>${s.clientName}</td><td>$${s.total.toFixed(2)}</td></tr>`).join('')}</tbody>
           </table>
-          <div class="footer">Este documento es un reporte generado automáticamente por Nexus ERP.</div>
+          <div class="footer">Este documento es un reporte generado automáticamente por Nexstock.</div>
           <script>window.print();</script>
         </body>
       </html>
@@ -327,6 +335,16 @@ const App: React.FC = () => {
     setUsers(dataService.getUsers());
   };
 
+  const handleDeleteUser = (id: string) => {
+    dataService.deleteUser(id);
+    setUsers(dataService.getUsers());
+  };
+
+  const handleSaveProduct = (p: Product) => {
+    dataService.saveProduct(p);
+    setProducts(dataService.getProducts());
+  };
+
   if (!user) return <Login onLogin={handleLogin} />;
 
   return (
@@ -336,14 +354,17 @@ const App: React.FC = () => {
       <div className="flex-1 flex flex-col lg:ml-64 min-h-screen w-full min-w-0">
         <header className="lg:hidden flex items-center justify-between p-5 bg-slate-900 text-white sticky top-0 z-40 shadow-xl">
            <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-slate-800 rounded-xl transition-colors"><svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round"/></svg></button>
-           <h1 className="font-black text-blue-400 tracking-tighter text-lg uppercase italic">Nexus ERP</h1>
+           <div className="flex items-center gap-2">
+             <ICONS.Logo className="w-6 h-6" />
+             <h1 className="font-semibold text-white tracking-tight text-lg">Nexstock</h1>
+           </div>
            <div className="w-9 h-9 rounded-full bg-blue-500 overflow-hidden border-2 border-slate-700 shadow-inner">{user.imageUrl ? <img src={user.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold">{user.name.charAt(0)}</div>}</div>
         </header>
 
         <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar force-scrollbar animate-in fade-in duration-500">
           {view === 'DASHBOARD' && <Dashboard sales={sales} products={products} />}
-          {view === 'USERS' && <UserManagement users={users} currentUser={user} onSave={handleSaveUser} onDelete={(id) => { dataService.deleteUser(id); setUsers(dataService.getUsers()); }} />}
-          {view === 'PRODUCTS' && <Inventory products={products} onSaveProduct={(p) => { dataService.saveProduct(p); setProducts(dataService.getProducts()); }} onDeleteProduct={(id) => { dataService.deleteProduct(id); setProducts(dataService.getProducts()); }} />}
+          {view === 'USERS' && <UserManagement users={users} currentUser={user} onSave={handleSaveUser} onDelete={handleDeleteUser} />}
+          {view === 'PRODUCTS' && <Inventory products={products} onSaveProduct={handleSaveProduct} onDeleteProduct={(id) => { dataService.deleteProduct(id); setProducts(dataService.getProducts()); }} />}
           {view === 'CLIENTS' && <Clients clients={clients} onSaveClient={(c) => { dataService.saveClient(c); setClients(dataService.getClients()); }} onDeleteClient={(id) => { dataService.deleteClient(id); setClients(dataService.getClients()); }} />}
           {view === 'NEW_SALE' && <NewSale products={products} clients={clients} currentUser={user} onCompleteSale={(s) => { dataService.completeSale(s); setSales(dataService.getSales()); setProducts(dataService.getProducts()); }} />}
           {view === 'PURCHASES' && <Purchases products={products} providers={providers} purchases={purchases} onCompletePurchase={(p) => { dataService.completePurchase(p); setPurchases(dataService.getPurchases()); setProducts(dataService.getProducts()); }} />}
